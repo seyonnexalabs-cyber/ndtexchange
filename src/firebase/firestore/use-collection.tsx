@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Query,
   onSnapshot,
@@ -65,6 +66,9 @@ export function useCollection<T = any>(
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
+  // Ref to store the stringified version of the last data array.
+  const lastDataStr = React.useRef<string | null>(null);
+
   useEffect(() => {
     if (!memoizedTargetRefOrQuery) {
       setData(null);
@@ -84,7 +88,14 @@ export function useCollection<T = any>(
         for (const doc of snapshot.docs) {
           results.push({ ...(doc.data() as T), id: doc.id });
         }
-        setData(results);
+        
+        const newDataStr = JSON.stringify(results);
+        // Only update if the array content has changed.
+        if (newDataStr !== lastDataStr.current) {
+            setData(results);
+            lastDataStr.current = newDataStr;
+        }
+
         setError(null);
         setIsLoading(false);
       },

@@ -1,6 +1,7 @@
+
 'use client';
     
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   DocumentReference,
   onSnapshot,
@@ -47,6 +48,9 @@ export function useDoc<T = any>(
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
+  // Ref to store the stringified version of the last data to prevent unnecessary re-renders.
+  const lastDataStr = React.useRef<string | null>(null);
+
   useEffect(() => {
     if (!memoizedDocRef) {
       setData(null);
@@ -62,12 +66,21 @@ export function useDoc<T = any>(
       memoizedDocRef,
       (snapshot: DocumentSnapshot<DocumentData>) => {
         if (snapshot.exists()) {
-          setData({ ...(snapshot.data() as T), id: snapshot.id });
+          const newData = { ...(snapshot.data() as T), id: snapshot.id };
+          const newDataStr = JSON.stringify(newData);
+          // Only update if the data has actually changed.
+          if (newDataStr !== lastDataStr.current) {
+              setData(newData as WithId<T>);
+              lastDataStr.current = newDataStr;
+          }
         } else {
           // Document does not exist
-          setData(null);
+          if (lastDataStr.current !== null) {
+            setData(null);
+            lastDataStr.current = null;
+          }
         }
-        setError(null); // Clear any previous error on successful snapshot (even if doc doesn't exist)
+        setError(null);
         setIsLoading(false);
       },
       (error: FirestoreError) => {

@@ -42,16 +42,11 @@ service cloud.firestore {
     
     // Rule for collection group query on 'reports'
     match /{path=**}/reports/{reportId} {
-      function isReportParticipant() {
-        let userData = getRequestingUserData();
-        // The report document must have clientCompanyId and providerCompanyId
-        return userData != null && 
-               (userData.companyId == resource.data.clientCompanyId || 
-                (resource.data.providerCompanyId != null && userData.companyId == resource.data.providerCompanyId));
-      }
-      
-      allow read: if isReportParticipant() || isPlatformAdmin();
-      allow write: if (isCompanyMember(request.resource.data.providerCompanyId)) || isPlatformAdmin();
+      allow read, write: if request.auth != null && (
+        resource.data.providerCompanyId == getRequestingUserData().companyId || 
+        resource.data.clientCompanyId == getRequestingUserData().companyId ||
+        isPlatformAdmin()
+      );
     }
 
     // ---------------------------
@@ -130,16 +125,11 @@ service cloud.firestore {
     // ---------------------------
     
     match /jobs/{jobId} {
-      // Secure rule for fetching a single job document.
       allow get: if isJobParticipant(jobId) || isOwner(resource.data.userId) || resource.data.status == 'Posted' || isPlatformAdmin();
-
-      // More permissive rule for listing/querying jobs. The client-side queries
-      // are responsible for filtering to the correct company's jobs.
       allow list: if authed();
 
       allow create: if isCompanyMember(request.resource.data.clientCompanyId) || isCompanyMember(request.resource.data.providerCompanyId) || isPlatformAdmin();
       
-      // Updates are complex: Client, Provider, or Admin can update.
       allow update: if isCompanyMember(resource.data.clientCompanyId) || 
                       (resource.data.providerCompanyId != null && isCompanyMember(resource.data.providerCompanyId)) ||
                       isPlatformAdmin();
@@ -154,9 +144,8 @@ service cloud.firestore {
     }
     
     match /bids/{bidId} {
+        allow read: if authed();
         allow create: if isCompanyMember(request.resource.data.providerCompanyId) || isPlatformAdmin();
-        allow get: if isJobParticipant(resource.data.jobId) || isOwner(resource.data.inspectorId) || isPlatformAdmin();
-        allow list: if authed();
         allow update: if isOwner(resource.data.inspectorId) || 
                       isCompanyMember(request.resource.data.clientCompanyId) ||
                       isPlatformAdmin();
@@ -164,16 +153,8 @@ service cloud.firestore {
     
     match /inspections/{inspectionId} {
         allow create: if isCompanyMember(request.resource.data.clientCompanyId) || isPlatformAdmin();
-
-        // Secure rule for fetching a single inspection document.
-        allow get: if isPlatformAdmin() || 
-                     (getRequestingUserData() != null && getRequestingUserData().companyId == resource.data.clientCompanyId) ||
-                     (getRequestingUserData() != null && getRequestingUserData().companyId == resource.data.providerCompanyId);
-
-        // More permissive rule for listing/querying inspections. The client-side queries
-        // are responsible for filtering to the correct company's inspections.
+        allow get: if (getRequestingUserData() != null && (getRequestingUserData().companyId == resource.data.clientCompanyId || getRequestingUserData().companyId == resource.data.providerCompanyId)) || isPlatformAdmin();
         allow list: if authed();
-        
         allow update: if isJobParticipant(resource.data.jobId) || isPlatformAdmin();
         allow delete: if isPlatformAdmin();
     }

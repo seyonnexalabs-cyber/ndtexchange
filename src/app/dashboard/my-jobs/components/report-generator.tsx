@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useFormContext } from 'react-hook-form';
@@ -24,6 +23,7 @@ const templates = {
     ET: dynamic(() => import('./report-templates/et-report').then((mod) => mod.default), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
     AE: dynamic(() => import('./report-templates/ae-report').then((mod) => mod.default), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
     APR: dynamic(() => import('./report-templates/apr-report').then((mod) => mod.default), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
+    GWT: dynamic(() => import('./report-templates/gwt-report').then((mod) => mod.default), { loading: () => <Skeleton className="h-48 w-full" />, ssr: false }),
 };
 
 const DefaultTemplate = () => (

@@ -792,15 +792,34 @@ const AdminDashboard = () => {
                 { name: 'jobs', data: seedData.jobsData },
                 { name: 'assets', data: seedData.clientAssets },
                 { name: 'bids', data: seedData.bidsData },
-                { name: 'inspections', data: seedData.inspectionsData },
                 { name: 'tasks', data: seedData.tasks },
             ];
 
-            console.log("[SEED] Preparing top-level collections...");
+            console.log("[SEED] Preparing collections...");
             topLevelCollections.forEach(({ name, data }) => {
                 data.forEach((item: any) => batch.set(doc(firestore, name, item.id), item));
                 console.log(`  - ✅ Prepared ${data.length} documents for ${name}.`);
             });
+
+            // Special handling for inspections and their nested reports
+            console.log("[SEED] Preparing inspections and nested reports...");
+            seedData.inspectionsData.forEach((item: any) => {
+                if (item.report) {
+                    const { report, ...inspectionData } = item;
+                    const reportSummary = {
+                        id: report.id,
+                        submittedOn: report.submittedOn,
+                        submittedBy: report.submittedBy,
+                    };
+                    batch.set(doc(firestore, 'inspections', inspectionData.id), { ...inspectionData, report: reportSummary });
+                    
+                    const reportRef = doc(firestore, 'jobs', inspectionData.jobId, 'reports', report.id);
+                    batch.set(reportRef, report);
+                } else {
+                    batch.set(doc(firestore, 'inspections', item.id), item);
+                }
+            });
+            console.log(`  - ✅ Prepared ${seedData.inspectionsData.length} inspections.`);
             
             await batch.commit();
             toast.success("Database Seeded Successfully!", {

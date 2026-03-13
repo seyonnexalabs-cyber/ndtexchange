@@ -15,8 +15,6 @@ import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import type { NDTTechnique } from '@/lib/types';
 import {
-  createPlateEditor,
-  Plate,
   PlateProvider,
   createPlugins,
 } from '@udecode/plate-common';
@@ -26,14 +24,12 @@ import { createCodeBlockPlugin } from '@udecode/plate-code-block';
 import { createHeadingPlugin } from '@udecode/plate-heading';
 import { createBoldPlugin, createItalicPlugin, createUnderlinePlugin } from '@udecode/plate-basic-marks';
 import { Skeleton } from '@/components/ui/skeleton';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { Editor } from '@/components/ui/editor';
 import { FixedToolbar } from '@/components/plate-ui/fixed-toolbar';
 import { FixedToolbarButtons } from '@/components/plate-ui/fixed-toolbar-buttons';
-import { Editor } from '@/components/plate-ui/editor';
 import { FloatingToolbar } from '@/components/plate-ui/floating-toolbar';
 import { FloatingToolbarButtons } from '@/components/plate-ui/floating-toolbar-buttons';
-import { Placeholder } from '@/components/plate-ui/placeholder';
-import { TooltipProvider } from '@/components/ui/tooltip';
-
 
 export default function NewReportTemplatePage() {
     const searchParams = useSearchParams();

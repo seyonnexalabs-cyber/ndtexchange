@@ -4,22 +4,51 @@ import * as React from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChevronLeft, FileText, Settings, Save } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { NDTTechniques } from '@/lib/seed-data';
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { collection } from 'firebase/firestore';
+import type { NDTTechnique } from '@/lib/types';
+import {
+  Plate,
+  PlateProvider,
+  PlateContent,
+  createPlugins,
+} from '@udecode/plate-common';
+import { createParagraphPlugin } from '@udecode/plate-paragraph';
+import { createBlockquotePlugin } from '@udecode/plate-block-quote';
+import { createCodeBlockPlugin } from '@udecode/plate-code-block';
+import { createHeadingPlugin } from '@udecode/plate-heading';
+import { createBoldPlugin, createItalicPlugin, createUnderlinePlugin } from '@udecode/plate-basic-marks';
+
 
 export default function NewReportTemplatePage() {
     const searchParams = useSearchParams();
+    const { firestore } = useFirebase();
+
+    const techniquesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]);
+    const { data: ndtTechniques } = useCollection<NDTTechnique>(techniquesQuery);
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
     };
+    
+    // Plate.js plugins
+    const plugins = createPlugins([
+        createParagraphPlugin(),
+        createBlockquotePlugin(),
+        createCodeBlockPlugin(),
+        createHeadingPlugin(),
+        createBoldPlugin(),
+        createItalicPlugin(),
+        createUnderlinePlugin(),
+    ]);
 
     return (
         <div className="space-y-6">
@@ -59,7 +88,7 @@ export default function NewReportTemplatePage() {
                                         <SelectValue placeholder="Select a technique" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {NDTTechniques.map(tech => (
+                                        {(ndtTechniques || []).map(tech => (
                                             <SelectItem key={tech.id} value={tech.acronym}>{tech.title}</SelectItem>
                                         ))}
                                     </SelectContent>
@@ -77,13 +106,17 @@ export default function NewReportTemplatePage() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2"><Settings className="text-primary" /> Template Editor</CardTitle>
                             <CardDescription>
-                                This is where a rich text editor like Plate.js would be integrated. You can drag & drop fields, add tables, and custom text to build your report structure.
+                                Use the editor below to create the structure of your report. You can add more advanced fields and a toolbar later.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="h-96 w-full rounded-md border-2 border-dashed flex items-center justify-center bg-muted/30">
-                                <p className="text-muted-foreground">Rich Text Editor (e.g., Plate.js) Area</p>
-                            </div>
+                           <PlateProvider plugins={plugins}>
+                              <div className="rounded-md border min-h-[400px] p-4 bg-background">
+                                <Plate>
+                                  <PlateContent placeholder="Start building your template here..." />
+                                </Plate>
+                              </div>
+                           </PlateProvider>
                         </CardContent>
                     </Card>
                 </div>

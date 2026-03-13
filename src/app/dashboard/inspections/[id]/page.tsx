@@ -128,6 +128,15 @@ export default function InspectionTaskPage() {
         return `${base}?${params.toString()}`;
     }
 
+    const cleanUndefinedValues = (obj: any) => {
+        return Object.entries(obj).reduce((acc, [key, value]) => {
+            if (value !== undefined) {
+                (acc as any)[key] = value;
+            }
+            return acc;
+        }, {});
+    };
+
     const handleSaveProgress = async () => {
         if (!firestore || !inspectionId) return;
         setIsSaving(true);
@@ -135,11 +144,13 @@ export default function InspectionTaskPage() {
             const values = form.getValues();
             const { inspectorId, inspectionEquipmentId, ...draftReportData } = values;
 
+            const cleanedDraftData = cleanUndefinedValues(draftReportData);
+
             const inspectionRef = doc(firestore, 'inspections', inspectionId);
             await updateDoc(inspectionRef, {
                 inspectorId: inspectorId,
                 equipmentId: inspectionEquipmentId,
-                draftReportData: draftReportData
+                draftReportData: cleanedDraftData
             });
 
             toast.success("Progress Saved!");
@@ -170,13 +181,15 @@ export default function InspectionTaskPage() {
 
             const newReportRef = doc(collection(firestore, 'jobs', job.id, 'reports'));
             const { inspectorId, inspectionEquipmentId, ...reportContent } = values;
+            
+            const cleanedReportContent = cleanUndefinedValues(reportContent);
 
             const reportData = {
                 id: newReportRef.id,
                 jobId: job.id,
                 inspectionId: inspection.id,
                 assetId: inspection.assetId,
-                reportData: reportContent,
+                reportData: cleanedReportContent,
                 createdAt: serverTimestamp(),
                 createdBy: currentUserProfile.id,
                 companyId: currentUserProfile.companyId,

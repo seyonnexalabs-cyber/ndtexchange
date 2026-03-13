@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useForm, FormProvider } from 'react-hook-form';
@@ -12,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Asset, JobDocument, Inspection, PlatformUser, NDTTechnique } from '@/lib/types';
 import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB, cn } from '@/lib/utils';
-import { PlusCircle, ChevronLeft, FileText, X, Check, ArrowRight, ArrowLeft } from "lucide-react";
+import { PlusCircle, ChevronLeft, FileText, X, Check, ArrowRight, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -451,6 +452,7 @@ export default function PostJobPage() {
                         const inspectionRef = doc(collection(firestore, 'inspections'));
                         const inspectionData: Omit<Inspection, 'id' | 'report'> = {
                             jobId: jobRef.id,
+                            clientCompanyId: userProfile.companyId,
                             assetId: scopeItem.assetId,
                             assetName: asset.name,
                             technique: technique,

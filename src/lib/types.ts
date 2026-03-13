@@ -115,6 +115,8 @@ export type Inspection = {
     date: string;
     status: 'Scheduled' | 'Completed' | 'Requires Review';
     report?: InspectionReport;
+    clientCompanyId?: string;
+    providerCompanyId?: string;
     createdAt?: any;
     createdBy?: string;
     modifiedAt?: any;

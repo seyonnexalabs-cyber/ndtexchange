@@ -1,10 +1,11 @@
 
+
 'use client';
 import * as React from 'react';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Separator } from '@/components/ui/separator';
 import { ChevronLeft, FileText, Printer, Save, AlertTriangle, User, Users, Calendar, HardHat, Building, CheckCircle, XCircle, Maximize, FileUp, Award, ShieldCheck, MessageSquare, Star, Gavel, Clock, Factory, DollarSign, Workflow, UserCheck, Briefcase, MapPin, Wrench, Folder, Edit, MoreVertical, ChevronRight, Settings2 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -17,7 +18,7 @@ import { collection, serverTimestamp, query, where, limit, getDocs, doc, updateD
 import type { Bid, Job, JobDocument, NDTServiceProvider, Client, Review, NDTTechnique, PlatformUser, Inspection, TemaDesign } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -147,12 +148,24 @@ export default function JobDetailPage() {
     }, [bids]);
 
     const inspectionsQuery = useMemoFirebase(() => {
-        if (!firestore || !job?.id) return null;
+        if (!firestore || !job?.id || !currentUserProfile?.companyId) return null;
+        const companyId = currentUserProfile.companyId;
+        const companyField = role === 'client' ? 'clientCompanyId' : (role === 'inspector' ? 'providerCompanyId' : null);
+
+        if (role === 'admin') {
+            return query(collection(firestore, 'inspections'), where('jobId', '==', job.id));
+        }
+        
+        if (!companyField) {
+            return null;
+        }
+        
         return query(
             collection(firestore, 'inspections'),
-            where('jobId', '==', job.id)
+            where('jobId', '==', job.id),
+            where(companyField, '==', companyId)
         );
-    }, [firestore, job]);
+    }, [firestore, job, currentUserProfile, role]);
     
     const { data: inspections, isLoading: isLoadingInspections } = useCollection<Inspection>(inspectionsQuery);
     
@@ -223,6 +236,12 @@ export default function JobDetailPage() {
                 statusChange: 'Assigned' as Job['status']
             };
             batch.update(jobRef, { history: arrayUnion(historyEntry) });
+
+            const inspectionsQuerySnapshot = await getDocs(query(collection(firestore, "inspections"), where("jobId", "==", job.id)));
+            inspectionsQuerySnapshot.forEach(inspectionDoc => {
+                batch.update(inspectionDoc.ref, { providerCompanyId: providerCompanyId });
+            });
+
             await batch.commit();
 
             toast.success("Job Awarded!", { description: "The job has been awarded. The provider will be notified." });

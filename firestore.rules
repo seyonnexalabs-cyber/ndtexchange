@@ -164,10 +164,13 @@ service cloud.firestore {
     }
     
     match /inspections/{inspectionId} {
-        allow read: if isJobParticipant(get(/databases/$(database)/documents/inspections/$(inspectionId)).data.jobId) || isPlatformAdmin();
+        allow read, update: if isPlatformAdmin() || 
+                        (request.auth.uid != null && 
+                            (resource.data.clientCompanyId == getRequestingUserData().companyId ||
+                                resource.data.providerCompanyId == getRequestingUserData().companyId));
+        
         allow create: if isJobParticipant(request.resource.data.jobId) || isPlatformAdmin();
-        allow update: if isJobParticipant(get(/databases/$(database)/documents/inspections/$(inspectionId)).data.jobId) || isPlatformAdmin();
-        allow write: if isJobParticipant(resource.data.jobId) || isPlatformAdmin();
+        allow delete: if isPlatformAdmin();
     }
 
     match /reviews/{reviewId} {

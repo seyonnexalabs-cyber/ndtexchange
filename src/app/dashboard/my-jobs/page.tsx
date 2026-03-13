@@ -1,5 +1,3 @@
-
-
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -53,8 +51,8 @@ const ClientJobDate = ({ date }: { date: Date | null }) => {
 
     return (
         <>
-            <p className="text-sm font-semibold text-muted-foreground">{formatted.dayOfWeek}</p>
-            <p className="text-3xl font-bold">{formatted.day}</p>
+            <div className="text-sm font-semibold text-muted-foreground">{formatted.dayOfWeek}</div>
+            <div className="text-3xl font-bold">{formatted.day}</div>
         </>
     );
 };
@@ -193,10 +191,14 @@ export default function MyJobsPage() {
     
     const inspectionsQuery = useMemoFirebase(() => {
         if (!firestore || !userProfile?.companyId || role !== 'inspector') return null;
-        return query(collection(firestore, 'inspections'), where('status', '==', 'Scheduled'));
+        return query(
+            collection(firestore, 'inspections'),
+            where('providerCompanyId', '==', userProfile.companyId),
+            where('status', '==', 'Scheduled')
+        );
     }, [firestore, userProfile, role]);
     
-    const { data: allPendingInspections, isLoading: isLoadingInspections } = useCollection<Inspection>(inspectionsQuery);
+    const { data: pendingInspections, isLoading: isLoadingInspections } = useCollection<Inspection>(inspectionsQuery);
 
     const jobsByCategory = useMemo(() => {
         if (!jobsFromDb) return { active: [], completed: [], upcoming: [], drafts: [] };
@@ -210,12 +212,6 @@ export default function MyJobsPage() {
             drafts: relevantJobs.filter(job => job.status === 'Draft'),
         };
     }, [jobsFromDb, role]);
-
-    const pendingInspections = useMemo(() => {
-        if (!allPendingInspections || !jobsFromDb) return [];
-        const userJobIds = new Set(jobsFromDb.map(j => j.id));
-        return allPendingInspections.filter(inspection => userJobIds.has(inspection.jobId));
-    }, [allPendingInspections, jobsFromDb]);
     
     const { displayedJobs, title, Icon } = useMemo(() => {
         let jobsToShow: Job[] = [];
@@ -473,7 +469,7 @@ export default function MyJobsPage() {
             )}
              
             {view === 'upcoming' && role === 'inspector' ? (
-                <PendingInspectionsList inspections={pendingInspections} constructUrl={constructUrl} userJobs={jobsFromDb || []} isLoading={isLoadingInspections} />
+                <PendingInspectionsList inspections={pendingInspections || []} constructUrl={constructUrl} userJobs={jobsFromDb || []} isLoading={isLoadingInspections} />
             ) : displayedJobs.length > 0 ? (
                  <div className="space-y-8">
                     {Object.entries(jobsByMonth).map(([month, jobs]) => (
@@ -535,4 +531,3 @@ export default function MyJobsPage() {
         </div>
     );
 }
-

@@ -1,4 +1,5 @@
 
+
 {
   "indexes": [
     {
@@ -108,6 +109,30 @@
       "queryScope": "COLLECTION_GROUP",
       "fields": [
         { "fieldPath": "id", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "inspections",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "providerCompanyId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "inspections",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "jobId", "order": "ASCENDING" },
+        { "fieldPath": "clientCompanyId", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "inspections",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "jobId", "order": "ASCENDING" },
+        { "fieldPath": "providerCompanyId", "order": "ASCENDING" }
       ]
     }
   ],

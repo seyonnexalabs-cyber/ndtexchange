@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -106,7 +107,7 @@ export default function InspectionsPage() {
                                         </CardContent>
                                         <CardFooter>
                                             <Button asChild className="w-full">
-                                                <Link href={constructUrl(`/dashboard/reports/new?jobId=${inspection.jobId}&inspectionId=${inspection.id}`)}>
+                                                <Link href={constructUrl(`/dashboard/inspections/${inspection.id}`)}>
                                                     <FileText className="mr-2 h-4 w-4" /> Start Report
                                                 </Link>
                                             </Button>
@@ -134,11 +135,11 @@ export default function InspectionsPage() {
                                     <TableRow key={inspection.id}>
                                         <TableCell className="font-medium">{inspection.assetName}</TableCell>
                                         <TableCell>{job?.title || inspection.jobId}</TableCell>
-                                        <TableCell><Badge variant="secondary">{inspection.technique}</Badge></TableCell>
+                                        <TableCell><Badge variant="secondary" shape="rounded">{inspection.technique}</Badge></TableCell>
                                         <TableCell><ClientFormattedDate date={inspectionDate} formatString={GLOBAL_DATE_FORMAT} /></TableCell>
                                         <TableCell className="text-right">
                                             <Button asChild>
-                                                <Link href={constructUrl(`/dashboard/reports/new?jobId=${inspection.jobId}&inspectionId=${inspection.id}`)}>
+                                                <Link href={constructUrl(`/dashboard/inspections/${inspection.id}`)}>
                                                     <FileText className="mr-2 h-4 w-4" /> Start Report
                                                 </Link>
                                             </Button>

@@ -33,9 +33,10 @@ service cloud.firestore {
 
     function isJobParticipant(jobId) {
         let job = get(/databases/$(database)/documents/jobs/$(jobId)).data;
-        return isCompanyMember(job.clientCompanyId) || 
-                (job.providerCompanyId != null && isCompanyMember(job.providerCompanyId)) ||
-                (job.auditorCompanyId != null && isCompanyMember(job.auditorCompanyId));
+        let userData = getRequestingUserData();
+        return userData.companyId == job.clientCompanyId || 
+                (job.providerCompanyId != null && userData.companyId == job.providerCompanyId) ||
+                (job.auditorCompanyId != null && userData.companyId == job.auditorCompanyId);
     }
 
     // ---------------------------
@@ -134,10 +135,10 @@ service cloud.firestore {
                       
       allow delete: if isPlatformAdmin();
 
-      // Nested Messages collection
+      // Nested Messages collection for real-time chat within a job
       match /messages/{messageId} {
-        allow read, delete: if isJobParticipant(jobId) || isPlatformAdmin();
-        allow create: if isOwner(request.resource.data.senderId) && isJobParticipant(jobId);
+          allow read, delete: if isJobParticipant(jobId) || isPlatformAdmin();
+          allow create: if (isJobParticipant(jobId) && request.resource.data.senderId == request.auth.uid) || isPlatformAdmin();
       }
     }
     
@@ -159,13 +160,13 @@ service cloud.firestore {
     }
     
     match /inspections/{inspectionId} {
-        allow read: if isJobParticipant(get(/databases/$(database)/documents/inspections/$(inspectionId)).data.jobId) || isPlatformAdmin();
-        allow write: if isJobParticipant(resource.data.jobId) || isPlatformAdmin();
+        allow read, write: if isJobParticipant(resource.data.jobId) || isPlatformAdmin();
         allow create: if isJobParticipant(request.resource.data.jobId) || isPlatformAdmin();
     }
 
     match /reports/{reportId} {
-      allow read, write: if isJobParticipant(get(/databases/$(database)/documents/reports/$(reportId)).data.jobId) || isPlatformAdmin();
+      // This rule allows a user to read/write a report if they are a participant in the job the report belongs to.
+      allow read, write: if isJobParticipant(resource.data.jobId) || isPlatformAdmin();
     }
 
     match /reviews/{reviewId} {

@@ -109,6 +109,7 @@ const inspectorMenu: MenuGroup[] = [
     items: [
       { id: 'technicians', href: '/dashboard/technicians', label: 'Technicians', icon: Users },
       { id: 'equipment', href: '/dashboard/equipment', label: 'Equipment', icon: Wrench },
+      { id: 'report-templates', href: '/dashboard/reports/templates', label: 'Report Templates', icon: FileText },
     ]
   },
   {

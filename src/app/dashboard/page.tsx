@@ -814,7 +814,17 @@ const AdminDashboard = () => {
                     batch.set(doc(firestore, 'inspections', inspectionData.id), { ...inspectionData, report: reportSummary });
                     
                     const reportRef = doc(firestore, 'jobs', inspectionData.jobId, 'reports', report.id);
-                    batch.set(reportRef, report);
+
+                    // Find the parent job to enrich the report with company IDs for security rules
+                    const parentJob = seedData.jobsData.find(j => j.id === inspectionData.jobId);
+
+                    const enrichedReport = {
+                        ...report,
+                        clientCompanyId: parentJob?.clientCompanyId,
+                        providerCompanyId: parentJob?.providerCompanyId,
+                    };
+
+                    batch.set(reportRef, enrichedReport);
                 } else {
                     batch.set(doc(firestore, 'inspections', item.id), item);
                 }

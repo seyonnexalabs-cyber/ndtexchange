@@ -21,8 +21,9 @@ import { CustomDateInput } from '@/components/ui/custom-date-input';
 import { cn, safeParseDate } from '@/lib/utils';
 import { format } from 'date-fns';
 import { MultiSelect, type MultiSelectOption } from '@/components/ui/multi-select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 
 const scopeItemSchema = z.object({
@@ -187,7 +188,7 @@ export default function EditJobPage() {
         setIsAddAssetOpen(false);
     };
     
-    const currentAssetIdsInScope = form.watch('scope').map(s => s.assetId);
+    const currentAssetIdsInScope = (form.watch('scope') || []).map(s => s.assetId);
     const availableAssets = clientAssets?.filter(asset => !currentAssetIdsInScope.includes(asset.id));
 
     const isLoading = isLoadingJob || isLoadingProfile || isLoadingAssets || isLoadingTechniques || isLoadingInspections;

@@ -1,5 +1,4 @@
 
-
 'use client';
 import * as React from 'react';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
@@ -417,7 +416,7 @@ export default function JobDetailPage() {
             <Tabs defaultValue="scope" value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList>
                     <TabsTrigger value="scope">Work Breakdown</TabsTrigger>
-                    <TabsTrigger value="bids">Bids</TabsTrigger>
+                    {(isClient || isAdmin) && <TabsTrigger value="bids">Bids</TabsTrigger>}
                     <TabsTrigger value="messages">Messages</TabsTrigger>
                     <TabsTrigger value="documents">Documents</TabsTrigger>
                     <TabsTrigger value="audit">History</TabsTrigger>

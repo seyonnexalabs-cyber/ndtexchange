@@ -113,16 +113,12 @@ export default function JobDetailPage() {
     const id = params.id as string;
     const searchParams = useSearchParams();
     const router = useRouter();
-    const role = searchParams.get('role') || 'client';
     const { firestore } = useFirebase();
     const { user: authUser, isUserLoading: isAuthLoading } = useUser();
     
     const [activeTab, setActiveTab] = React.useState('scope');
     const [reviewingBid, setReviewingBid] = React.useState<(Bid & { provider: NDTServiceProvider }) | null>(null);
     const [isViewerOpen, setIsViewerOpen] = React.useState(false);
-
-    const isClient = role === 'client';
-    const isAdmin = role === 'admin';
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -133,15 +129,16 @@ export default function JobDetailPage() {
 
     const { data: job, isLoading: isLoadingJob, error: jobError } = useDoc<Job>(useMemoFirebase(() => (firestore && id ? doc(firestore, 'jobs', id as string) : null), [firestore, id]));
     
+    const userRole = currentUserProfile?.role?.toLowerCase();
+    const isClient = userRole === 'client';
+    const isAdmin = userRole === 'admin';
+
     const bidsQuery = useMemoFirebase(() => {
         if (!firestore || !job?.id) return null;
-        // This query is for clients/admins to see all bids for a job.
         if (isClient || isAdmin) {
             if (!job.clientCompanyId) return null;
             return query(collection(firestore, 'bids'), where('jobId', '==', job.id), where('clientCompanyId', '==', job.clientCompanyId));
         }
-        // Inspectors should not run this query. They might have a different query to see their own bid.
-        // For now, returning null prevents the permission error.
         return null;
     }, [firestore, job, isClient, isAdmin]);
 
@@ -160,9 +157,9 @@ export default function JobDetailPage() {
     const inspectionsQuery = useMemoFirebase(() => {
         if (!firestore || !job?.id || !currentUserProfile?.companyId) return null;
         const companyId = currentUserProfile.companyId;
-        const companyField = role === 'client' ? 'clientCompanyId' : (role === 'inspector' ? 'providerCompanyId' : null);
+        const companyField = userRole === 'client' ? 'clientCompanyId' : (userRole === 'inspector' ? 'providerCompanyId' : null);
 
-        if (role === 'admin') {
+        if (userRole === 'admin') {
             return query(collection(firestore, 'inspections'), where('jobId', '==', job.id));
         }
         
@@ -175,7 +172,7 @@ export default function JobDetailPage() {
             where('jobId', '==', job.id),
             where(companyField, '==', companyId)
         );
-    }, [firestore, job, currentUserProfile, role]);
+    }, [firestore, job, currentUserProfile, userRole]);
     
     const { data: inspections, isLoading: isLoadingInspections } = useCollection<Inspection>(inspectionsQuery);
     
@@ -218,12 +215,12 @@ export default function JobDetailPage() {
 
     const isAuthorized = React.useMemo(() => {
         if (!job || !currentUserProfile) return false;
-        if (role === 'admin') return true;
-        if (role === 'client') return job.clientCompanyId === currentUserProfile.companyId;
-        if (role === 'inspector') return job.status === 'Posted' || job.providerCompanyId === currentUserProfile.companyId;
-        if (role === 'auditor') return job.auditorCompanyId === currentUserProfile.companyId;
+        if (isAdmin) return true;
+        if (isClient) return job.clientCompanyId === currentUserProfile.companyId;
+        if (userRole === 'inspector') return job.status === 'Posted' || job.providerCompanyId === currentUserProfile.companyId;
+        if (userRole === 'auditor') return job.auditorCompanyId === currentUserProfile.companyId;
         return false;
-    }, [job, currentUserProfile, role]);
+    }, [job, currentUserProfile, userRole, isAdmin, isClient]);
 
     const handleAwardBid = async (awardedBidId: string, providerCompanyId: string) => {
         if (!job || !bids || !firestore || !currentUserProfile) return;
@@ -273,10 +270,6 @@ export default function JobDetailPage() {
             const jobRef = doc(firestore, 'jobs', job.id);
             const historyEntry = {
                 user: currentUserProfile.name,
-                // Fixing the serverTimestamp() issue here for client-side updates.
-                // Firebase serverTimestamp() can only be used in 'set' or 'update' operations when the value is directly provided.
-                // For arrayUnion, it expects a client-side value if it's not a direct field update.
-                // Using toISOString() for a client-generated timestamp in arrayUnion.
                 timestamp: new Date().toISOString(), 
                 action: `Status changed to ${newStatus}`,
                 statusChange: newStatus
@@ -295,6 +288,8 @@ export default function JobDetailPage() {
     };
 
     const isLoading = isLoadingJob || isLoadingBids || isLoadingProfile || isLoadingCompanies || isLoadingInspections || isLoadingDesigns || isLoadingTechniques;
+    const isAssignedProvider = userRole === 'inspector' && job?.providerCompanyId === currentUserProfile?.companyId;
+    const canUpdateStatus = isClient || isAdmin || isAssignedProvider;
 
     if (isLoading) {
         return (
@@ -316,8 +311,6 @@ export default function JobDetailPage() {
 
     if (!job) return notFound();
     
-    const isAssignedProvider = role === 'inspector' && job.providerCompanyId === currentUserProfile?.companyId;
-    const canUpdateStatus = isClient || isAdmin || isAssignedProvider;
     const scheduledDate = job.scheduledStartDate ? safeParseDate(job.scheduledStartDate) : null;
 
     return (

@@ -155,7 +155,8 @@ service cloud.firestore {
     
     match /bids/{bidId} {
         allow create: if isCompanyMember(request.resource.data.providerCompanyId) || isPlatformAdmin();
-        allow read: if isJobParticipant(resource.data.jobId) || isPlatformAdmin();
+        allow get: if isJobParticipant(resource.data.jobId) || isOwner(resource.data.inspectorId) || isPlatformAdmin();
+        allow list: if authed();
         allow update: if isOwner(resource.data.inspectorId) || 
                       isCompanyMember(request.resource.data.clientCompanyId) ||
                       isPlatformAdmin();

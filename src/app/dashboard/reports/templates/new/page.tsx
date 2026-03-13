@@ -15,9 +15,9 @@ import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import type { NDTTechnique } from '@/lib/types';
 import {
+  createPlateEditor,
   Plate,
   PlateProvider,
-  PlateContent,
   createPlugins,
 } from '@udecode/plate-common';
 import { createParagraphPlugin } from '@udecode/plate-paragraph';
@@ -26,6 +26,13 @@ import { createCodeBlockPlugin } from '@udecode/plate-code-block';
 import { createHeadingPlugin } from '@udecode/plate-heading';
 import { createBoldPlugin, createItalicPlugin, createUnderlinePlugin } from '@udecode/plate-basic-marks';
 import { Skeleton } from '@/components/ui/skeleton';
+import { FixedToolbar } from '@/components/plate-ui/fixed-toolbar';
+import { FixedToolbarButtons } from '@/components/plate-ui/fixed-toolbar-buttons';
+import { Editor } from '@/components/plate-ui/editor';
+import { FloatingToolbar } from '@/components/plate-ui/floating-toolbar';
+import { FloatingToolbarButtons } from '@/components/plate-ui/floating-toolbar-buttons';
+import { Placeholder } from '@/components/plate-ui/placeholder';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 
 export default function NewReportTemplatePage() {
@@ -111,19 +118,22 @@ export default function NewReportTemplatePage() {
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2"><Settings className="text-primary" /> Template Editor</CardTitle>
-                            <CardDescription>
-                                Use the editor below to create the structure of your report. You can add more advanced fields and a toolbar later.
-                            </CardDescription>
                         </CardHeader>
                         <CardContent>
                            {isClient ? (
-                                <PlateProvider plugins={plugins}>
-                                  <div className="rounded-md border min-h-[400px] p-4 bg-background">
-                                    <Plate>
-                                      <PlateContent placeholder="Start building your template here..." />
-                                    </Plate>
-                                  </div>
-                               </PlateProvider>
+                                <TooltipProvider>
+                                  <PlateProvider plugins={plugins}>
+                                    <div className="rounded-md border">
+                                      <FixedToolbar>
+                                        <FixedToolbarButtons />
+                                      </FixedToolbar>
+                                      <Editor className="px-6 py-8" />
+                                      <FloatingToolbar>
+                                        <FloatingToolbarButtons />
+                                      </FloatingToolbar>
+                                    </div>
+                                  </PlateProvider>
+                                </TooltipProvider>
                            ) : (
                                 <Skeleton className="h-[400px] w-full" />
                            )}

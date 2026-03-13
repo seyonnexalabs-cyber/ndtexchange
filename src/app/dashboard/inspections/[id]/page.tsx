@@ -9,7 +9,7 @@ import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation
 import { toast } from 'sonner';
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChevronLeft, FileText, Check, ArrowRight, ArrowLeft, Save, CheckCircle, AlertTriangle } from 'lucide-react';
+import { ChevronLeft, FileText, Check, Save, Info } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn, safeParseDate } from '@/lib/utils';
 import Link from 'next/link';
@@ -23,6 +23,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { CheckCircle, AlertTriangle } from 'lucide-react';
 
 
 const reportSchema = z.object({
@@ -77,9 +80,9 @@ export default function InspectionTaskPage() {
 
     const inspectionId = params.id as string;
     
-    const [step, setStep] = React.useState(1);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [isSaving, setIsSaving] = React.useState(false);
+    const [isReadOnly, setIsReadOnly] = React.useState(false);
 
 
     const { data: inspection, isLoading: isLoadingInspection } = useDoc<Inspection>(useMemoFirebase(() => (firestore && inspectionId ? doc(firestore, 'inspections', inspectionId) : null), [firestore, inspectionId]));
@@ -120,6 +123,12 @@ export default function InspectionTaskPage() {
                 inspectionEquipmentId: inspection.equipmentId,
                 ...initialData
             });
+
+             if (inspection.status !== 'Scheduled') {
+                setIsReadOnly(true);
+            } else {
+                setIsReadOnly(false);
+            }
         }
     }, [inspection, form]);
     
@@ -233,24 +242,6 @@ export default function InspectionTaskPage() {
             setIsSubmitting(false);
         }
     };
-
-    const steps = [
-        { id: 1, name: "Job Details" },
-        { id: 2, name: "Asset & Technique" },
-        { id: 3, name: "Inspection Data" },
-        { id: 4, name: "Report Configuration" },
-    ];
-    
-    const handleNext = async () => {
-        const fieldsToValidate: any[] = [];
-        if (step === 2) fieldsToValidate.push('inspectorId', 'inspectionEquipmentId');
-        if (step === 3) fieldsToValidate.push('summary'); 
-        
-        const isValid = fieldsToValidate.length > 0 ? await form.trigger(fieldsToValidate) : true;
-        if (isValid) setStep(s => s + 1);
-    };
-    
-    const handleBack = () => setStep(s => s - 1);
     
     const isLoading = isLoadingJob || isLoadingInspection || isLoadingProfile || isLoadingTechnique || isLoadingEquipment || isLoadingTechnicians;
 
@@ -272,191 +263,164 @@ export default function InspectionTaskPage() {
 
     return (
         <FormProvider {...form}>
-            <div className="space-y-8">
-                 <nav aria-label="Progress" className="print-hidden">
-                    <ol role="list" className="flex items-center">
-                        {steps.map((s, index) => (
-                            <li key={s.name} className={cn("relative", index !== steps.length - 1 ? "flex-1" : "")}>
-                                {step > s.id ? (
-                                     <div className="flex items-center font-semibold">
-                                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                                            <Check className="h-5 w-5" />
-                                        </span>
-                                        <span className="ml-2 text-xs text-foreground">{s.name}</span>
-                                    </div>
-                                ) : step === s.id ? (
-                                    <div className="flex items-center font-semibold" aria-current="step">
-                                        <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-primary bg-background">
-                                            <span className="text-primary">{s.id}</span>
-                                        </span>
-                                        <span className="ml-2 text-xs text-primary">{s.name}</span>
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center">
-                                        <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-border bg-background">
-                                            <span className="text-muted-foreground">{s.id}</span>
-                                        </span>
-                                        <span className="ml-2 text-xs text-muted-foreground">{s.name}</span>
-                                    </div>
-                                )}
-                                 {index < steps.length - 1 ? (
-                                    <div className={cn(
-                                        "absolute left-4 top-4 -ml-px mt-0.5 h-full w-0.5",
-                                        step > s.id ? 'bg-primary' : 'bg-border'
-                                    )} />
-                                ) : null}
-                            </li>
-                        ))}
-                    </ol>
-                </nav>
+            <div className="space-y-6">
+                <Link href={constructUrl(`/dashboard/my-jobs/${job.id}`)} className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mb-4 print-hidden")}>
+                    <ChevronLeft className="mr-2 h-4 w-4" />
+                    Back to Job Details
+                </Link>
 
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                    {step === 1 && (
-                        <Card>
-                             <CardHeader><CardTitle>1. Job Details</CardTitle></CardHeader>
-                             <CardContent className="grid grid-cols-2 gap-4 text-sm">
-                                <div><p className="font-semibold">Job Title</p><p>{job.title}</p></div>
-                                <div><p className="font-semibold">Location</p><p>{job.location}</p></div>
-                                <div><p className="font-semibold">Client</p><p>{job.client}</p></div>
-                                <div><p className="font-semibold">Scheduled Date</p><p>{job.scheduledStartDate ? format(safeParseDate(job.scheduledStartDate)!, 'PPP') : 'N/A'}</p></div>
-                             </CardContent>
-                        </Card>
-                    )}
-
-                    {step === 2 && (
-                        <Card>
-                            <CardHeader><CardTitle>2. Asset & Technique</CardTitle></CardHeader>
-                            <CardContent className="grid grid-cols-2 gap-8">
-                                <FormField control={form.control} name="inspectorId" render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Performing Inspector*</FormLabel>
-                                        <Select onValueChange={field.onChange} value={field.value}>
-                                            <FormControl><SelectTrigger><SelectValue placeholder="Select inspector..."/></SelectTrigger></FormControl>
-                                            <SelectContent>
-                                                {(providerTechnicians || []).map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}/>
-                                <FormField control={form.control} name="inspectionEquipmentId" render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Inspection Equipment*</FormLabel>
-                                        <div className="flex items-center gap-2">
+                 {isReadOnly && (
+                    <Alert variant="default" className="mb-6">
+                        <Info className="h-4 w-4" />
+                        <AlertTitle>Report Submitted</AlertTitle>
+                        <AlertDescription>
+                            This inspection report has already been submitted and is now read-only.
+                        </AlertDescription>
+                    </Alert>
+                )}
+                
+                <form onSubmit={form.handleSubmit(onSubmit)}>
+                  <fieldset disabled={isReadOnly}>
+                    <Tabs defaultValue="details" className="w-full">
+                        <TabsList className="grid w-full grid-cols-4">
+                            <TabsTrigger value="details">Job Details</TabsTrigger>
+                            <TabsTrigger value="setup">Asset & Setup</TabsTrigger>
+                            <TabsTrigger value="data">Inspection Data</TabsTrigger>
+                            <TabsTrigger value="config">Report Config</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="details" className="mt-6">
+                            <Card>
+                                <CardHeader><CardTitle>Job Details</CardTitle></CardHeader>
+                                <CardContent className="grid grid-cols-2 gap-4 text-sm">
+                                    <div><p className="font-semibold">Job Title</p><p>{job.title}</p></div>
+                                    <div><p className="font-semibold">Location</p><p>{job.location}</p></div>
+                                    <div><p className="font-semibold">Client</p><p>{job.client}</p></div>
+                                    <div><p className="font-semibold">Scheduled Date</p><p>{job.scheduledStartDate ? format(safeParseDate(job.scheduledStartDate)!, 'PPP') : 'N/A'}</p></div>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                        <TabsContent value="setup" className="mt-6">
+                            <Card>
+                                <CardHeader><CardTitle>Asset & Setup</CardTitle></CardHeader>
+                                <CardContent className="grid grid-cols-2 gap-8">
+                                    <FormField control={form.control} name="inspectorId" render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Performing Inspector*</FormLabel>
                                             <Select onValueChange={field.onChange} value={field.value}>
-                                                <FormControl>
-                                                    <SelectTrigger className="flex-1">
-                                                        <SelectValue placeholder="Select equipment..."/>
-                                                    </SelectTrigger>
-                                                </FormControl>
+                                                <FormControl><SelectTrigger><SelectValue placeholder="Select inspector..."/></SelectTrigger></FormControl>
                                                 <SelectContent>
-                                                    {recommendedEquipment.length > 0 && (
-                                                        <SelectGroup>
-                                                            <SelectLabel>Recommended</SelectLabel>
-                                                            {recommendedEquipment.map(e => <SelectItem key={e.id} value={e.id}>{e.name} ({e.id})</SelectItem>)}
-                                                        </SelectGroup>
-                                                    )}
-                                                    {otherEquipment.length > 0 && (
-                                                        <>
-                                                            {recommendedEquipment.length > 0 && <Separator />}
-                                                            <SelectGroup>
-                                                                <SelectLabel>Other Equipment</SelectLabel>
-                                                                {otherEquipment.map(e => <SelectItem key={e.id} value={e.id}>{e.name} ({e.id})</SelectItem>)}
-                                                            </SelectGroup>
-                                                        </>
-                                                    )}
-                                                    {recommendedEquipment.length === 0 && otherEquipment.length === 0 && <div className="p-2 text-sm text-muted-foreground">No available equipment found.</div>}
+                                                    {(providerTechnicians || []).map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
                                                 </SelectContent>
                                             </Select>
-                                            {selectedEquipment && inspection?.technique && (
-                                                <TooltipProvider>
-                                                    <Tooltip>
-                                                        <TooltipTrigger>
-                                                            {selectedEquipment.techniques.includes(inspection.technique) ? (
-                                                                <CheckCircle className="h-5 w-5 text-green-500" />
-                                                            ) : (
-                                                                <AlertTriangle className="h-5 w-5 text-amber-500" />
-                                                            )}
-                                                        </TooltipTrigger>
-                                                        <TooltipContent>
-                                                            {selectedEquipment.techniques.includes(inspection.technique) ? (
-                                                                <p>This equipment is recommended for {inspection.technique}.</p>
-                                                            ) : (
-                                                                <p>Warning: This equipment is not recommended for {inspection.technique}.</p>
-                                                            )}
-                                                        </TooltipContent>
-                                                    </Tooltip>
-                                                </TooltipProvider>
-                                            )}
-                                        </div>
-                                        <FormMessage />
-                                        {selectedEquipment && (
-                                            <div className="mt-2 space-y-1 text-xs border p-2 rounded-md bg-muted/50">
-                                                <p><strong>Type:</strong> {selectedEquipment.type}</p>
-                                                <p><strong>Serial #:</strong> {selectedEquipment.serialNumber}</p>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}/>
+                                    <FormField control={form.control} name="inspectionEquipmentId" render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Inspection Equipment*</FormLabel>
+                                            <div className="flex items-center gap-2">
+                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                    <FormControl>
+                                                        <SelectTrigger className="flex-1">
+                                                            <SelectValue placeholder="Select equipment..."/>
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        {recommendedEquipment.length > 0 && (
+                                                            <SelectGroup>
+                                                                <SelectLabel>Recommended</SelectLabel>
+                                                                {recommendedEquipment.map(e => <SelectItem key={e.id} value={e.id}>{e.name} ({e.id})</SelectItem>)}
+                                                            </SelectGroup>
+                                                        )}
+                                                        {otherEquipment.length > 0 && (
+                                                            <>
+                                                                {recommendedEquipment.length > 0 && <Separator />}
+                                                                <SelectGroup>
+                                                                    <SelectLabel>Other Equipment</SelectLabel>
+                                                                    {otherEquipment.map(e => <SelectItem key={e.id} value={e.id}>{e.name} ({e.id})</SelectItem>)}
+                                                                </SelectGroup>
+                                                            </>
+                                                        )}
+                                                        {recommendedEquipment.length === 0 && otherEquipment.length === 0 && <div className="p-2 text-sm text-muted-foreground">No available equipment found.</div>}
+                                                    </SelectContent>
+                                                </Select>
+                                                {selectedEquipment && inspection?.technique && (
+                                                    <TooltipProvider>
+                                                        <Tooltip>
+                                                            <TooltipTrigger type="button">
+                                                                {selectedEquipment.techniques.includes(inspection.technique) ? (
+                                                                    <CheckCircle className="h-5 w-5 text-green-500" />
+                                                                ) : (
+                                                                    <AlertTriangle className="h-5 w-5 text-amber-500" />
+                                                                )}
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>
+                                                                {selectedEquipment.techniques.includes(inspection.technique) ? (
+                                                                    <p>This equipment is recommended for {inspection.technique}.</p>
+                                                                ) : (
+                                                                    <p>Warning: This equipment is not recommended for {inspection.technique}.</p>
+                                                                )}
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
+                                                )}
                                             </div>
-                                        )}
-                                    </FormItem>
-                                )}/>
-                                <div>
-                                    <h3 className="font-medium">Technique Info</h3>
-                                    <div className="mt-2 space-y-1 text-sm border p-3 rounded-md">
-                                        <p className="text-base font-semibold">{ndtTechnique?.title} ({ndtTechnique?.acronym})</p>
-                                        <p className="text-muted-foreground">{ndtTechnique?.description}</p>
+                                            <FormMessage />
+                                            {selectedEquipment && (
+                                                <div className="mt-2 space-y-1 text-xs border p-2 rounded-md bg-muted/50">
+                                                    <p><strong>Type:</strong> {selectedEquipment.type}</p>
+                                                    <p><strong>Serial #:</strong> {selectedEquipment.serialNumber}</p>
+                                                </div>
+                                            )}
+                                        </FormItem>
+                                    )}/>
+                                    <div>
+                                        <h3 className="font-medium">Technique Info</h3>
+                                        <div className="mt-2 space-y-1 text-sm border p-3 rounded-md">
+                                            <p className="text-base font-semibold">{ndtTechnique?.title} ({ndtTechnique?.acronym})</p>
+                                            <p className="text-muted-foreground">{ndtTechnique?.description}</p>
+                                        </div>
                                     </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {step === 3 && (
-                        <Card>
-                             <CardHeader><CardTitle>3. Inspection Data Entry</CardTitle></CardHeader>
-                             <CardContent><ReportGenerator technique={inspection.technique} /></CardContent>
-                        </Card>
-                    )}
-
-                    {step === 4 && (
-                        <Card>
-                            <CardHeader><CardTitle>4. Report Configuration</CardTitle></CardHeader>
-                            <CardContent className="space-y-4">
-                                <h3 className="font-semibold">Configure Inspection Report</h3>
-                                <FormField control={form.control} name="includeSummary" render={({ field }) => <FormItem className="flex flex-row items-center space-x-3 space-y-0"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl><FormLabel className="font-normal">Include Summary</FormLabel></FormItem>} />
-                                <FormField control={form.control} name="includeMeasurements" render={({ field }) => <FormItem className="flex flex-row items-center space-x-3 space-y-0"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl><FormLabel className="font-normal">Include Measurements</FormLabel></FormItem>} />
-                                <FormField control={form.control} name="includePhotos" render={({ field }) => <FormItem className="flex flex-row items-center space-x-3 space-y-0"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl><FormLabel className="font-normal">Include Photos</FormLabel></FormItem>} />
-                            </CardContent>
-                        </Card>
-                    )}
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                        <TabsContent value="data" className="mt-6">
+                            <Card>
+                                <CardHeader><CardTitle>Inspection Data Entry</CardTitle></CardHeader>
+                                <CardContent><ReportGenerator technique={inspection.technique} /></CardContent>
+                            </Card>
+                        </TabsContent>
+                        <TabsContent value="config" className="mt-6">
+                            <Card>
+                                <CardHeader><CardTitle>Report Configuration</CardTitle></CardHeader>
+                                <CardContent className="space-y-4">
+                                    <h3 className="font-semibold">Configure Inspection Report</h3>
+                                    <FormField control={form.control} name="includeSummary" render={({ field }) => <FormItem className="flex flex-row items-center space-x-3 space-y-0"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl><FormLabel className="font-normal">Include Summary</FormLabel></FormItem>} />
+                                    <FormField control={form.control} name="includeMeasurements" render={({ field }) => <FormItem className="flex flex-row items-center space-x-3 space-y-0"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl><FormLabel className="font-normal">Include Measurements</FormLabel></FormItem>} />
+                                    <FormField control={form.control} name="includePhotos" render={({ field }) => <FormItem className="flex flex-row items-center space-x-3 space-y-0"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl><FormLabel className="font-normal">Include Photos</FormLabel></FormItem>} />
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                    </Tabs>
                     
-                    <div className="flex justify-between print-hidden">
-                        <Button type="button" variant="outline" onClick={handleBack} disabled={step === 1}>
-                            <ArrowLeft className="mr-2 h-4 w-4" /> Previous
+                    <div className="flex justify-end print-hidden gap-2 mt-6">
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={handleSaveProgress}
+                            disabled={!form.formState.isDirty || isSubmitting || isSaving || isReadOnly}
+                        >
+                            <Save className="mr-2 h-4 w-4" />
+                            {isSaving ? "Saving..." : "Save Progress"}
                         </Button>
-                        
-                        <div className="flex items-center gap-2">
-                            <Button
-                                type="button"
-                                variant="secondary"
-                                onClick={handleSaveProgress}
-                                disabled={!form.formState.isDirty || isSubmitting || isSaving}
-                            >
-                                <Save className="mr-2 h-4 w-4" />
-                                {isSaving ? "Saving..." : "Save Progress"}
-                            </Button>
-
-                            {step < steps.length ? (
-                                <Button type="button" onClick={handleNext}>
-                                    Next Step <ArrowRight className="ml-2 h-4 w-4" />
-                                </Button>
-                            ) : (
-                                <Button type="submit" disabled={isSubmitting}>
-                                    {isSubmitting ? "Submitting..." : <><FileText className="mr-2 h-4 w-4"/> Generate Report</>}
-                                </Button>
-                            )}
-                        </div>
+                        <Button type="submit" disabled={isSubmitting || isReadOnly}>
+                            {isSubmitting ? "Submitting..." : <><FileText className="mr-2 h-4 w-4"/> Generate Report</>}
+                        </Button>
                     </div>
+                  </fieldset>
                 </form>
             </div>
         </FormProvider>
     );
 }
+

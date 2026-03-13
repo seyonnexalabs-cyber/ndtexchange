@@ -336,19 +336,22 @@ const AppSidebar = () => {
             {menuItems.map((group) => (
                 <div key={group.title} className="mb-2">
                     <h3 className="px-2 py-2 text-xs font-semibold tracking-wide text-muted-foreground">{group.title}</h3>
-                    {group.items.map((item) => (
-                        <Link
-                            key={item.id}
-                            href={constructUrl(item.href)}
-                            className={cn(
-                                "flex items-center gap-3 rounded-lg px-3 py-2 text-foreground transition-all hover:bg-muted hover:text-primary",
-                                activeItem?.id === item.id && "bg-muted text-primary font-semibold"
-                            )}
-                        >
-                            <item.icon className="h-4 w-4" />
-                            {item.label}
-                        </Link>
-                    ))}
+                    {group.items.map((item) => {
+                        const isActive = activeItem?.id === item.id;
+                        return (
+                            <Link
+                                key={item.id}
+                                href={constructUrl(item.href)}
+                                className={cn(
+                                    "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-muted hover:text-primary",
+                                    isActive && "bg-primary text-primary-foreground"
+                                )}
+                            >
+                                <item.icon className={cn("h-4 w-4", isActive ? "opacity-75" : "text-primary")} />
+                                {item.label}
+                            </Link>
+                        )
+                    })}
                 </div>
             ))}
         </nav>

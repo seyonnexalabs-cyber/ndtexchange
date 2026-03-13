@@ -10,7 +10,7 @@ import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation
 import { toast } from 'sonner';
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChevronLeft, FileText, Check, Save, Info } from 'lucide-react';
+import { ChevronLeft, FileText, Check, Save, Info, CheckCircle, AlertTriangle, Settings2, Database } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn, safeParseDate } from '@/lib/utils';
 import Link from 'next/link';
@@ -26,7 +26,6 @@ import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle, AlertTriangle } from 'lucide-react';
 
 
 const reportSchema = z.object({
@@ -302,89 +301,126 @@ export default function InspectionTaskPage() {
                             </Card>
                         </TabsContent>
                         <TabsContent value="setup" className="mt-6">
-                            <Card>
-                                <CardHeader><CardTitle>Asset & Setup</CardTitle></CardHeader>
-                                <CardContent className="grid grid-cols-2 gap-8">
-                                    <FormField control={form.control} name="inspectorId" render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Performing Inspector*</FormLabel>
-                                            <Select onValueChange={field.onChange} value={field.value}>
-                                                <FormControl><SelectTrigger><SelectValue placeholder="Select inspector..."/></SelectTrigger></FormControl>
-                                                <SelectContent>
-                                                    {(providerTechnicians || []).map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}/>
-                                    <FormField control={form.control} name="inspectionEquipmentId" render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Inspection Equipment*</FormLabel>
-                                            <div className="flex items-center gap-2">
+                             <div className="space-y-6">
+                                <Card>
+                                    <CardHeader><CardTitle>Asset & Setup</CardTitle></CardHeader>
+                                    <CardContent className="grid grid-cols-2 gap-8">
+                                        <FormField control={form.control} name="inspectorId" render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Performing Inspector*</FormLabel>
                                                 <Select onValueChange={field.onChange} value={field.value}>
-                                                    <FormControl>
-                                                        <SelectTrigger className="flex-1">
-                                                            <SelectValue placeholder="Select equipment..."/>
-                                                        </SelectTrigger>
-                                                    </FormControl>
+                                                    <FormControl><SelectTrigger><SelectValue placeholder="Select inspector..."/></SelectTrigger></FormControl>
                                                     <SelectContent>
-                                                        {recommendedEquipment.length > 0 && (
-                                                            <SelectGroup>
-                                                                <SelectLabel>Recommended</SelectLabel>
-                                                                {recommendedEquipment.map(e => <SelectItem key={e.id} value={e.id}>{e.name} ({e.id})</SelectItem>)}
-                                                            </SelectGroup>
-                                                        )}
-                                                        {otherEquipment.length > 0 && (
-                                                            <>
-                                                                {recommendedEquipment.length > 0 && <Separator />}
-                                                                <SelectGroup>
-                                                                    <SelectLabel>Other Equipment</SelectLabel>
-                                                                    {otherEquipment.map(e => <SelectItem key={e.id} value={e.id}>{e.name} ({e.id})</SelectItem>)}
-                                                                </SelectGroup>
-                                                            </>
-                                                        )}
-                                                        {recommendedEquipment.length === 0 && otherEquipment.length === 0 && <div className="p-2 text-sm text-muted-foreground">No available equipment found.</div>}
+                                                        {(providerTechnicians || []).map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
                                                     </SelectContent>
                                                 </Select>
-                                                {selectedEquipment && inspection?.technique && (
-                                                    <TooltipProvider>
-                                                        <Tooltip>
-                                                            <TooltipTrigger type="button">
-                                                                {selectedEquipment.techniques.includes(inspection.technique) ? (
-                                                                    <CheckCircle className="h-5 w-5 text-green-500" />
-                                                                ) : (
-                                                                    <AlertTriangle className="h-5 w-5 text-amber-500" />
-                                                                )}
-                                                            </TooltipTrigger>
-                                                            <TooltipContent>
-                                                                {selectedEquipment.techniques.includes(inspection.technique) ? (
-                                                                    <p>This equipment is recommended for {inspection.technique}.</p>
-                                                                ) : (
-                                                                    <p>Warning: This equipment is not recommended for {inspection.technique}.</p>
-                                                                )}
-                                                            </TooltipContent>
-                                                        </Tooltip>
-                                                    </TooltipProvider>
-                                                )}
-                                            </div>
-                                            <FormMessage />
-                                            {selectedEquipment && (
-                                                <div className="mt-2 space-y-1 text-xs border p-2 rounded-md bg-muted/50">
-                                                    <p><strong>Type:</strong> {selectedEquipment.type}</p>
-                                                    <p><strong>Serial #:</strong> {selectedEquipment.serialNumber}</p>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}/>
+                                        <FormField control={form.control} name="inspectionEquipmentId" render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Inspection Equipment*</FormLabel>
+                                                <div className="flex items-center gap-2">
+                                                    <Select onValueChange={field.onChange} value={field.value}>
+                                                        <FormControl>
+                                                            <SelectTrigger className="flex-1">
+                                                                <SelectValue placeholder="Select equipment..."/>
+                                                            </SelectTrigger>
+                                                        </FormControl>
+                                                        <SelectContent>
+                                                            {recommendedEquipment.length > 0 && (
+                                                                <SelectGroup>
+                                                                    <SelectLabel>Recommended</SelectLabel>
+                                                                    {recommendedEquipment.map(e => <SelectItem key={e.id} value={e.id}>{e.name} ({e.id})</SelectItem>)}
+                                                                </SelectGroup>
+                                                            )}
+                                                            {otherEquipment.length > 0 && (
+                                                                <>
+                                                                    {recommendedEquipment.length > 0 && <Separator />}
+                                                                    <SelectGroup>
+                                                                        <SelectLabel>Other Equipment</SelectLabel>
+                                                                        {otherEquipment.map(e => <SelectItem key={e.id} value={e.id}>{e.name} ({e.id})</SelectItem>)}
+                                                                    </SelectGroup>
+                                                                </>
+                                                            )}
+                                                            {recommendedEquipment.length === 0 && otherEquipment.length === 0 && <div className="p-2 text-sm text-muted-foreground">No available equipment found.</div>}
+                                                        </SelectContent>
+                                                    </Select>
+                                                    {selectedEquipment && inspection?.technique && (
+                                                        <TooltipProvider>
+                                                            <Tooltip>
+                                                                <TooltipTrigger type="button">
+                                                                    {selectedEquipment.techniques.includes(inspection.technique) ? (
+                                                                        <CheckCircle className="h-5 w-5 text-green-500" />
+                                                                    ) : (
+                                                                        <AlertTriangle className="h-5 w-5 text-amber-500" />
+                                                                    )}
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>
+                                                                    {selectedEquipment.techniques.includes(inspection.technique) ? (
+                                                                        <p>This equipment is recommended for {inspection.technique}.</p>
+                                                                    ) : (
+                                                                        <p>Warning: This equipment is not recommended for {inspection.technique}.</p>
+                                                                    )}
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        </TooltipProvider>
+                                                    )}
                                                 </div>
-                                            )}
-                                        </FormItem>
-                                    )}/>
-                                    <div>
-                                        <h3 className="font-medium">Technique Info</h3>
-                                        <div className="mt-2 space-y-1 text-sm border p-3 rounded-md">
-                                            <p className="text-base font-semibold">{ndtTechnique?.title} ({ndtTechnique?.acronym})</p>
-                                            <p className="text-muted-foreground">{ndtTechnique?.description}</p>
+                                                <FormMessage />
+                                                {selectedEquipment && (
+                                                    <div className="mt-2 space-y-1 text-xs border p-2 rounded-md bg-muted/50">
+                                                        <p><strong>Type:</strong> {selectedEquipment.type}</p>
+                                                        <p><strong>Serial #:</strong> {selectedEquipment.serialNumber}</p>
+                                                    </div>
+                                                )}
+                                            </FormItem>
+                                        )}/>
+                                        <div>
+                                            <h3 className="font-medium">Technique Info</h3>
+                                            <div className="mt-2 space-y-1 text-sm border p-3 rounded-md">
+                                                <p className="text-base font-semibold">{ndtTechnique?.title} ({ndtTechnique?.acronym})</p>
+                                                <p className="text-muted-foreground">{ndtTechnique?.description}</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Design Layouts</CardTitle>
+                                        <CardDescription>Reference or create layouts for heat exchangers or storage tanks.</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        {job?.temaDesignIds && job.temaDesignIds.length > 0 ? (
+                                            <div>
+                                                <h4 className="font-semibold text-sm mb-2">Attached TEMA Designs</h4>
+                                                <div className="flex flex-col gap-2">
+                                                    {job.temaDesignIds.map(designId => (
+                                                        <Button key={designId} asChild variant="outline">
+                                                            <Link href={constructUrl(`/dashboard/temadesigner?designId=${designId}`)}>
+                                                                View Design {designId.substring(0, 8)}...
+                                                            </Link>
+                                                        </Button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <Button asChild variant="secondary" className="w-full">
+                                                <Link href={constructUrl('/dashboard/temadesigner')}>
+                                                    <Settings2 className="mr-2 h-4 w-4" />
+                                                    Open TEMA Tube Layout Designer
+                                                </Link>
+                                            </Button>
+                                        )}
+                                        <Button asChild variant="secondary" className="w-full">
+                                            <Link href={constructUrl('/dashboard/tank-designer')}>
+                                                <Database className="mr-2 h-4 w-4" />
+                                                Open Storage Tank Designer
+                                            </Link>
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+                            </div>
                         </TabsContent>
                         <TabsContent value="data" className="mt-6">
                             <Card>

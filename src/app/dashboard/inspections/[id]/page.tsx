@@ -9,18 +9,20 @@ import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation
 import { toast } from 'sonner';
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChevronLeft, FileText, Check, ArrowRight, ArrowLeft, Save } from 'lucide-react';
+import { ChevronLeft, FileText, Check, ArrowRight, ArrowLeft, Save, CheckCircle, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn, safeParseDate } from '@/lib/utils';
 import Link from 'next/link';
 import ReportGenerator from '../../my-jobs/components/report-generator';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFirebase, useDoc, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, serverTimestamp, doc, writeBatch, arrayUnion, query, where, setDoc, updateDoc, deleteField } from 'firebase/firestore';
 import type { Job, Client, NDTServiceProvider, PlatformUser, Inspection, Equipment, NDTTechnique } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Separator } from '@/components/ui/separator';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 
 const reportSchema = z.object({
@@ -93,14 +95,15 @@ export default function InspectionTaskPage() {
     const { data: providerTechnicians, isLoading: isLoadingTechnicians } = useCollection<PlatformUser>(
         useMemoFirebase(() => (firestore && job?.providerCompanyId ? query(collection(firestore, 'users'), where('companyId', '==', job.providerCompanyId), where('role', '==', 'Inspector')) : null), [firestore, job])
     );
-
-    const filteredEquipment = React.useMemo(() => {
+    
+    const { recommendedEquipment, otherEquipment } = React.useMemo(() => {
         if (!providerEquipment || !inspection?.technique) {
-            return [];
+            return { recommendedEquipment: [], otherEquipment: [] };
         }
-        return providerEquipment.filter(equip => 
-            equip.techniques.includes(inspection.technique) && equip.status === 'Available'
-        );
+        const availableEquipment = providerEquipment.filter(e => e.status === 'Available');
+        const recommended = availableEquipment.filter(equip => equip.techniques.includes(inspection!.technique));
+        const other = availableEquipment.filter(equip => !equip.techniques.includes(inspection!.technique));
+        return { recommendedEquipment: recommended, otherEquipment: other };
     }, [providerEquipment, inspection?.technique]);
     
     const form = useForm<z.infer<typeof reportSchema>>({
@@ -326,16 +329,56 @@ export default function InspectionTaskPage() {
                                 <FormField control={form.control} name="inspectionEquipmentId" render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Inspection Equipment*</FormLabel>
-                                        <Select onValueChange={field.onChange} value={field.value}>
-                                            <FormControl><SelectTrigger><SelectValue placeholder="Select equipment..."/></SelectTrigger></FormControl>
-                                            <SelectContent>
-                                                {(filteredEquipment || []).map(e => <SelectItem key={e.id} value={e.id}>{e.name} ({e.id})</SelectItem>)}
-                                                 {filteredEquipment.length === 0 && <p className="text-sm text-muted-foreground p-2">No available equipment for this technique.</p>}
-                                            </SelectContent>
-                                        </Select>
+                                        <div className="flex items-center gap-2">
+                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                <FormControl>
+                                                    <SelectTrigger className="flex-1">
+                                                        <SelectValue placeholder="Select equipment..."/>
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {recommendedEquipment.length > 0 && (
+                                                        <SelectGroup>
+                                                            <SelectLabel>Recommended</SelectLabel>
+                                                            {recommendedEquipment.map(e => <SelectItem key={e.id} value={e.id}>{e.name} ({e.id})</SelectItem>)}
+                                                        </SelectGroup>
+                                                    )}
+                                                    {otherEquipment.length > 0 && (
+                                                        <>
+                                                            {recommendedEquipment.length > 0 && <Separator />}
+                                                            <SelectGroup>
+                                                                <SelectLabel>Other Equipment</SelectLabel>
+                                                                {otherEquipment.map(e => <SelectItem key={e.id} value={e.id}>{e.name} ({e.id})</SelectItem>)}
+                                                            </SelectGroup>
+                                                        </>
+                                                    )}
+                                                    {recommendedEquipment.length === 0 && otherEquipment.length === 0 && <div className="p-2 text-sm text-muted-foreground">No available equipment found.</div>}
+                                                </SelectContent>
+                                            </Select>
+                                            {selectedEquipment && inspection?.technique && (
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger>
+                                                            {selectedEquipment.techniques.includes(inspection.technique) ? (
+                                                                <CheckCircle className="h-5 w-5 text-green-500" />
+                                                            ) : (
+                                                                <AlertTriangle className="h-5 w-5 text-amber-500" />
+                                                            )}
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            {selectedEquipment.techniques.includes(inspection.technique) ? (
+                                                                <p>This equipment is recommended for {inspection.technique}.</p>
+                                                            ) : (
+                                                                <p>Warning: This equipment is not recommended for {inspection.technique}.</p>
+                                                            )}
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            )}
+                                        </div>
                                         <FormMessage />
                                         {selectedEquipment && (
-                                            <div className="mt-4 space-y-1 text-sm border p-3 rounded-md">
+                                            <div className="mt-2 space-y-1 text-xs border p-2 rounded-md bg-muted/50">
                                                 <p><strong>Type:</strong> {selectedEquipment.type}</p>
                                                 <p><strong>Serial #:</strong> {selectedEquipment.serialNumber}</p>
                                             </div>

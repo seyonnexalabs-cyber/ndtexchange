@@ -1,6 +1,6 @@
 
 
-import type { Asset, Job, PlatformUser, Client, Review, Subscription, Payment, JobPayment, JobChat, Notification, UserAuditLog, JobAuditLog, BillingAuditLog, NDTServiceProvider, AuditFirm, Inspection, Bid, Manufacturer, NDTTechnique, Product, Task, Plan, AddOn, NDTEvent } from '@/lib/types';
+import type { Asset, Job, PlatformUser, Client, Review, Subscription, Payment, JobPayment, JobChat, Notification, UserAuditLog, JobAuditLog, BillingAuditLog, NDTServiceProvider, AuditFirm, Inspection, Bid, Manufacturer, NDTTechnique, Product, Task, Plan, AddOn, NDTEvent, TemaDesign, TankDesign } from '@/lib/types';
 import { CheckCircle2, Circle, HelpCircle, XCircle, ArrowDown, ArrowRight, ArrowUp, Repeat, Square } from 'lucide-react';
 
 // This file serves as the master data source for seeding the Firestore database.
@@ -456,6 +456,10 @@ export const clientAssets: Asset[] = [
         nextInspection: '2025-01-01',
         approvalStatus: 'Approved',
     },
+    { id: 'ASSET-HX-501', companyId: 'client-01', name: 'Heat Exchanger E-501', type: 'Vessel', location: 'Refinery A', status: 'Operational', nextInspection: '2025-08-01', manufacturer: 'HeatEx Inc.', serialNumber: 'SN-HX501', installationDate: '2021-08-15', approvalStatus: 'Approved' },
+    { id: 'ASSET-TK-201', companyId: 'client-03', name: 'Crude Storage Tank T-201', type: 'Tank', location: 'Power Plant B', status: 'Requires Inspection', nextInspection: '2024-09-01', manufacturer: 'Pro-Fab Tanks', serialNumber: 'SN-TK201', installationDate: '2017-06-30', approvalStatus: 'Approved' },
+    { id: 'ASSET-COND-01', companyId: 'client-06', name: 'Steam Condenser SC-01', type: 'Vessel', location: 'Power Plant B', status: 'Operational', nextInspection: '2025-04-10', manufacturer: 'Vessel Works', model: 'COND-X1', serialNumber: 'SN-SC01', installationDate: '2019-09-09', approvalStatus: 'Approved' },
+    { id: 'ASSET-PV-101', companyId: 'client-01', name: 'Pressure Vessel V-101', type: 'Vessel', location: 'Refinery A', status: 'Operational', nextInspection: '2025-05-20', manufacturer: 'Vessel Works', serialNumber: 'SN-PV101', installationDate: '2022-01-10', approvalStatus: 'Approved' },
 ];
 
 export const allUsers: PlatformUser[] = [
@@ -512,6 +516,40 @@ nextWeek.setDate(nextWeek.getDate() + 7);
 const nextMonth = new Date(today);
 nextMonth.setMonth(nextMonth.getMonth() + 1);
 
+export const temaDesigns: TemaDesign[] = [
+    {
+        id: 'DESIGN-HX-501',
+        userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2',
+        name: 'Heat Exchanger E-501 Layout',
+        description: 'Standard TEMA BEM layout for crude pre-heater.',
+        config: { tubeOdIn: 0.75, pitchRatio: 1.25, pattern: 'triangular', numPasses: 2, shape: { type: 'circle', diameterMm: 800 }, },
+        tubes: [],
+        createdAt: '2024-07-01T09:00:00Z',
+        modifiedAt: '2024-07-01T09:00:00Z',
+    },
+    {
+        id: 'DESIGN-COND-01',
+        userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2',
+        name: 'Condenser SC-01 Tube Layout',
+        description: 'Power plant steam condenser tubesheet.',
+        config: { tubeOdIn: 1, pitchRatio: 1.25, pattern: 'rotated-triangular', numPasses: 1, shape: { type: 'rectangle', widthMm: 2000, heightMm: 1500 }, },
+        tubes: [],
+        createdAt: '2024-07-03T11:00:00Z',
+        modifiedAt: '2024-07-03T11:00:00Z',
+    }
+];
+
+export const tankDesigns: TankDesign[] = [
+    {
+        id: 'DESIGN-TK-201',
+        userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2',
+        name: 'Crude Storage Tank T-201',
+        description: '120ft diameter crude oil storage tank.',
+        config: { diameter: 120, shellCourses: 6, floorPlates: 12, },
+        createdAt: '2024-07-02T10:00:00Z',
+        modifiedAt: '2024-07-02T10:00:00Z',
+    }
+];
 
 export const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>[] = [
     {
@@ -858,6 +896,79 @@ export const jobsData: Omit<Job, 'bids' | 'inspections' | 'assignedTechnicians'>
         industry: 'Oil & Gas — Downstream/Refinery',
         certificationsRequired: ['ASNT MT L-II']
     },
+    {
+        id: 'JOB-HX-01',
+        userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2',
+        title: 'Heat Exchanger Retubing Inspection',
+        client: 'Global Energy Corp.',
+        clientCompanyId: 'client-01',
+        providerCompanyId: 'provider-03',
+        location: 'Refinery A',
+        status: 'Scheduled',
+        postedDate: '2024-08-01',
+        scheduledStartDate: '2024-08-15',
+        description: 'Post-retubing baseline inspection of heat exchanger E-501. Perform ET on 100% of tubes as per the attached TEMA layout.',
+        assetIds: ['ASSET-HX-501'],
+        temaDesignIds: ['DESIGN-HX-501'],
+        techniques: ['ET'],
+        certificationsRequired: ['ASNT ET L-II'],
+        jobType: 'project',
+        workflow: 'standard'
+    },
+    {
+        id: 'JOB-TK-01',
+        userId: 'user-client-03',
+        title: 'Storage Tank Floor MFL Inspection',
+        client: 'Energy Transfer',
+        clientCompanyId: 'client-03',
+        location: 'Power Plant B',
+        status: 'Posted',
+        postedDate: '2024-08-05',
+        bidExpiryDate: '2024-08-20',
+        description: 'API 653 in-service inspection of Tank T-201. Requires MFL scan of the entire floor and UT prove-up of all indications.',
+        assetIds: ['ASSET-TK-201'],
+        techniques: ['MFL', 'UT'],
+        certificationsRequired: ['API 653', 'ASNT MFL L-II', 'ASNT UT L-II'],
+        jobType: 'shutdown',
+        workflow: 'level3'
+    },
+    {
+        id: 'JOB-COND-01',
+        userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2',
+        title: 'Condenser Tube Inspection',
+        client: 'Power Generation LLC',
+        clientCompanyId: 'client-06',
+        providerCompanyId: 'provider-09',
+        location: 'Power Plant B',
+        status: 'Completed',
+        postedDate: '2024-07-10',
+        scheduledStartDate: '2024-07-20',
+        scheduledEndDate: '2024-07-21',
+        description: 'Routine inspection of condenser tubes to check for blockages and pitting.',
+        assetIds: ['ASSET-COND-01'],
+        temaDesignIds: ['DESIGN-COND-01'],
+        techniques: ['APR'],
+        certificationsRequired: ['OEM Certified'],
+        jobType: 'project',
+        workflow: 'standard'
+    },
+    {
+        id: 'JOB-PV-01',
+        userId: 'nxHzdOkwW6RLPWEgVvVbHyzN8OR2',
+        title: 'Pressure Vessel Nozzle Inspection',
+        client: 'Global Energy Corp.',
+        clientCompanyId: 'client-01',
+        providerCompanyId: 'provider-02',
+        location: 'Refinery A',
+        status: 'Assigned',
+        postedDate: '2024-07-25',
+        description: 'PAUT inspection of all nozzle-to-shell welds on vessel V-101.',
+        assetIds: ['ASSET-PV-101'],
+        techniques: ['PAUT'],
+        certificationsRequired: ['ASNT UT L-II PAUT'],
+        jobType: 'callout',
+        workflow: 'standard'
+    },
 ];
 
 export const bidsData: Bid[] = [
@@ -981,6 +1092,19 @@ export const inspectionsData: Inspection[] = [
     { id: 'INSP-013', jobId: 'JOB-022', assetName: 'Pressure Vessel PV-203', assetId: 'ASSET-003', technique: 'PAUT', inspector: 'Maria Garcia', date: '2024-07-20', status: 'Requires Review' },
     { id: 'INSP-014', jobId: 'JOB-023', assetName: 'Internal Training Block', assetId: 'ASSET-TEAM-01', technique: 'VT', inspector: 'Maria Garcia', date: '2024-08-05', status: 'Scheduled' },
     { id: 'INSP-015', jobId: 'JOB-024', assetName: 'Condensate Storage Tank', assetId: 'ASSET-007', technique: 'RT', inspector: 'Maria Garcia', date: '2024-07-25', status: 'Requires Review' },
+    { id: 'INSP-HX-01', jobId: 'JOB-HX-01', assetName: 'Heat Exchanger E-501', assetId: 'ASSET-HX-501', technique: 'ET', inspector: 'Unassigned', date: '2024-08-15', status: 'Scheduled' },
+    { id: 'INSP-TK-01A', jobId: 'JOB-TK-01', assetName: 'Crude Storage Tank T-201', assetId: 'ASSET-TK-201', technique: 'MFL', inspector: 'Unassigned', date: '2024-09-01', status: 'Scheduled' },
+    { id: 'INSP-TK-01B', jobId: 'JOB-TK-01', assetName: 'Crude Storage Tank T-201', assetId: 'ASSET-TK-201', technique: 'UT', inspector: 'Unassigned', date: '2024-09-01', status: 'Scheduled' },
+    { id: 'INSP-COND-01', jobId: 'JOB-COND-01', assetName: 'Steam Condenser SC-01', assetId: 'ASSET-COND-01', technique: 'APR', inspector: 'Maria Garcia', date: '2024-07-20', status: 'Completed', 
+        report: {
+            id: 'REP-COND-01',
+            submittedOn: '2024-07-21T18:00:00Z',
+            submittedBy: 'Maria Garcia',
+            reportData: { summary: 'APR inspection of condenser tubes complete. Minor blockages detected in section B, rows 10-15. Recommend cleaning.'},
+            documents: []
+        }
+    },
+    { id: 'INSP-PV-01', jobId: 'JOB-PV-01', assetName: 'Pressure Vessel V-101', assetId: 'ASSET-PV-101', technique: 'PAUT', inspector: 'Unassigned', date: '2024-08-10', status: 'Scheduled' },
 ];
 
 export const subscriptions: Subscription[] = [

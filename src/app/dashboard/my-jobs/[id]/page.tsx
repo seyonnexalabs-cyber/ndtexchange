@@ -121,6 +121,9 @@ export default function JobDetailPage() {
     const [reviewingBid, setReviewingBid] = React.useState<(Bid & { provider: NDTServiceProvider }) | null>(null);
     const [isViewerOpen, setIsViewerOpen] = React.useState(false);
 
+    const isClient = role === 'client';
+    const isAdmin = role === 'admin';
+
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
         return `${base}?${params.toString()}`;
@@ -131,9 +134,16 @@ export default function JobDetailPage() {
     const { data: job, isLoading: isLoadingJob, error: jobError } = useDoc<Job>(useMemoFirebase(() => (firestore && id ? doc(firestore, 'jobs', id as string) : null), [firestore, id]));
     
     const bidsQuery = useMemoFirebase(() => {
-        if (!firestore || !job?.id || !job?.clientCompanyId) return null;
-        return query(collection(firestore, 'bids'), where('jobId', '==', job.id), where('clientCompanyId', '==', job.clientCompanyId));
-    }, [firestore, job]);
+        if (!firestore || !job?.id) return null;
+        // This query is for clients/admins to see all bids for a job.
+        if (isClient || isAdmin) {
+            if (!job.clientCompanyId) return null;
+            return query(collection(firestore, 'bids'), where('jobId', '==', job.id), where('clientCompanyId', '==', job.clientCompanyId));
+        }
+        // Inspectors should not run this query. They might have a different query to see their own bid.
+        // For now, returning null prevents the permission error.
+        return null;
+    }, [firestore, job, isClient, isAdmin]);
 
     const { data: bids, isLoading: isLoadingBids } = useCollection<Bid>(bidsQuery);
     
@@ -306,8 +316,6 @@ export default function JobDetailPage() {
 
     if (!job) return notFound();
     
-    const isClient = role === 'client';
-    const isAdmin = role === 'admin';
     const isAssignedProvider = role === 'inspector' && job.providerCompanyId === currentUserProfile?.companyId;
     const canUpdateStatus = isClient || isAdmin || isAssignedProvider;
     const scheduledDate = job.scheduledStartDate ? safeParseDate(job.scheduledStartDate) : null;

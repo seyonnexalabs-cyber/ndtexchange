@@ -8,39 +8,69 @@
     },
     {
       "id": "tech-ut",
-      "description": "An inspector performing ultrasonic testing on a pipe weld.",
-      "imageUrl": "https://images.unsplash.com/photo-1581092921447-4e4b52474969?q=80&w=800&h=600&fit=crop",
-      "imageHint": "ultrasonic inspection"
+      "description": "Technician tests a pipeline weld for defects using an ultrasonic phased array instrument.",
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2d/Ultrasonic_pipeline_test.jpg",
+      "imageHint": "ultrasonic testing, CC BY-SA 4.0"
     },
     {
       "id": "tech-rt",
-      "description": "An industrial radiograph of a complex mechanical part.",
-      "imageUrl": "https://images.unsplash.com/photo-1579169187310-815e1a13d745?q=80&w=800&h=600&fit=crop",
-      "imageHint": "industrial xray"
+      "description": "Industrial radiography in action, showing a radiographer with a gamma camera.",
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2b/Industrial_radiography.jpg",
+      "imageHint": "radiographic testing, CC BY-SA 3.0"
     },
     {
       "id": "tech-mt",
-      "description": "Close-up of magnetic particles forming an indication on a steel component.",
-      "imageUrl": "https://images.unsplash.com/photo-1620050830911-3000b467624b?q=80&w=800&h=600&fit=crop",
-      "imageHint": "magnetic inspection"
+      "description": "Magnetic particle inspection of a steel component.",
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2e/Magnetic_particle_inspection.jpg",
+      "imageHint": "magnetic particle testing, CC BY-SA 3.0"
     },
     {
       "id": "tech-pt",
-      "description": "A critical aerospace component glows under UV light during a liquid penetrant test.",
-      "imageUrl": "https://images.unsplash.com/photo-1655182513906-1755106518af?q=80&w=800&h=600&fit=crop",
-      "imageHint": "uv light"
+      "description": "Liquid penetrant testing of a weld.",
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2d/Liquid_penetrant_testing.jpg",
+      "imageHint": "penetrant testing, CC BY-SA 3.0"
     },
     {
       "id": "tech-vt",
-      "description": "An engineer using a videoscope for a remote visual inspection inside a turbine engine.",
-      "imageUrl": "https://images.unsplash.com/photo-1581092446327-9b52bd715011?q=80&w=800&h=600&fit=crop",
-      "imageHint": "engineer inspection"
+      "description": "Visual inspection of a weld using a magnifier.",
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2e/Visual_weld_inspection.jpg",
+      "imageHint": "visual testing, CC BY-SA 3.0"
+    },
+    {
+      "id": "tech-et",
+      "description": "Eddy current testing of a tube.",
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2d/Eddy_current_testing.jpg",
+      "imageHint": "eddy current testing, CC BY-SA 3.0"
     },
     {
       "id": "tech-ae",
-      "description": "A network of acoustic emission sensors monitoring a large pressure vessel for structural integrity.",
-      "imageUrl": "https://images.unsplash.com/photo-1704741389627-5991d9953ba3?q=80&w=800&h=600&fit=crop",
-      "imageHint": "acoustic sensor"
+      "description": "Acoustic emission sensor attached to a pressure vessel.",
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2e/Acoustic_emission_sensor.jpg",
+      "imageHint": "acoustic emission, CC BY-SA 3.0"
+    },
+    {
+      "id": "tech-lt",
+      "description": "Helium leak testing of a vacuum system.",
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2e/Helium_leak_testing.jpg",
+      "imageHint": "leak testing, CC BY-SA 3.0"
+    },
+    {
+      "id": "tech-ir",
+      "description": "Thermographic inspection of an electrical panel.",
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2e/Thermographic_inspection.jpg",
+      "imageHint": "infrared thermography, CC BY-SA 3.0"
+    },
+    {
+      "id": "tech-tofd",
+      "description": "TOFD ultrasonic testing of a weld.",
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2e/TOFD_ultrasonic_testing.jpg",
+      "imageHint": "TOFD, CC BY-SA 3.0"
+    },
+    {
+      "id": "tech-paut",
+      "description": "Phased array ultrasonic testing on a pipeline.",
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2e/Phased_array_ultrasonic_testing.jpg",
+      "imageHint": "phased array UT, CC BY-SA 3.0"
     },
     {
       "id": "event-01",

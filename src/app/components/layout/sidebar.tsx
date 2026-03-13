@@ -73,6 +73,7 @@ const clientMenu: MenuGroup[] = [
     items: [
       { id: 'temadesigner', href: '/dashboard/temadesigner', label: 'Tube Designer', icon: Settings2 },
       { id: 'tankdesigner', href: '/dashboard/tank-designer', label: 'Tank Designer', icon: Database },
+      { id: 'ndtsetupbuilder', href: '/dashboard/ndt-setup-builder', label: 'NDT Setup Builder', icon: Wrench },
       { id: 'tasks', href: '/dashboard/tasks', label: 'My Tasks', icon: ClipboardList },
       { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText },
       { id: 'messages', href: '/dashboard/messages', label: 'Messages', icon: MessageSquare },
@@ -117,6 +118,7 @@ const inspectorMenu: MenuGroup[] = [
     items: [
       { id: 'temadesigner', href: '/dashboard/temadesigner', label: 'Tube Designer', icon: Settings2 },
       { id: 'tankdesigner', href: '/dashboard/tank-designer', label: 'Tank Designer', icon: Database },
+      { id: 'ndtsetupbuilder', href: '/dashboard/ndt-setup-builder', label: 'NDT Setup Builder', icon: Wrench },
       { id: 'tasks', href: '/dashboard/tasks', label: 'My Tasks', icon: ClipboardList },
       { id: 'reports', href: '/dashboard/reports', label: 'Reports', icon: FileText },
       { id: 'calendar', href: '/dashboard/calendar', label: 'Calendar', icon: Calendar },

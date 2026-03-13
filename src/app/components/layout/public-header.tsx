@@ -36,6 +36,7 @@ export default function PublicHeader() {
       items: [
         { href: '/temadesigner', label: 'Tube Designer' },
         { href: '/tank-designer', label: 'Tank Designer' },
+        { href: '/ndt-setup-builder', label: 'NDT Setup Builder' },
       ]
     },
     { href: '/request-demo', label: 'Request a Demo' },

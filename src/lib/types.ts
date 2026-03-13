@@ -45,13 +45,20 @@ export type InspectionReport = {
     id: string;
     submittedOn: string;
     submittedBy: string;
-    reportData: any; 
-    documents: JobDocument[];
-    createdAt?: any;
-    createdBy?: string;
-    modifiedAt?: any;
-    modifiedBy?: string;
 };
+
+export type ReportDocument = {
+    id: string;
+    jobId: string;
+    inspectionId: string;
+    assetId: string;
+    reportData: any;
+    createdAt: any;
+    createdBy: string;
+    providerCompanyId: string;
+    clientCompanyId: string;
+};
+
 
 export type JobUpdate = {
     user: string;

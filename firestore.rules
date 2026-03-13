@@ -39,6 +39,20 @@ service cloud.firestore {
                 (job.providerCompanyId != null && userData.companyId == job.providerCompanyId) ||
                 (job.auditorCompanyId != null && userData.companyId == job.auditorCompanyId));
     }
+    
+    // Rule for collection group query on 'reports'
+    match /{path=**}/reports/{reportId} {
+      function isReportParticipant() {
+        let userData = getRequestingUserData();
+        // The report document must have clientCompanyId and providerCompanyId
+        return userData != null && 
+               (userData.companyId == resource.data.clientCompanyId || 
+                (resource.data.providerCompanyId != null && userData.companyId == resource.data.providerCompanyId));
+      }
+      
+      allow read: if isReportParticipant() || isPlatformAdmin();
+      allow write: if (isCompanyMember(request.resource.data.providerCompanyId)) || isPlatformAdmin();
+    }
 
     // ---------------------------
     //  Public Directories (Read-Only for non-admins)
@@ -137,11 +151,6 @@ service cloud.firestore {
           allow read, delete: if isJobParticipant(jobId) || isPlatformAdmin();
           allow create: if (isJobParticipant(jobId) && request.resource.data.senderId == request.auth.uid) || isPlatformAdmin();
       }
-
-      // Nested reports subcollection
-      match /reports/{reportId} {
-        allow read, write: if isJobParticipant(jobId) || isPlatformAdmin();
-      }
     }
     
     match /bids/{bidId} {
@@ -157,8 +166,8 @@ service cloud.firestore {
 
         // Secure rule for fetching a single inspection document.
         allow get: if isPlatformAdmin() || 
-                     (getRequestingUserData().companyId == resource.data.clientCompanyId) ||
-                     (getRequestingUserData().companyId == resource.data.providerCompanyId);
+                     (getRequestingUserData() != null && getRequestingUserData().companyId == resource.data.clientCompanyId) ||
+                     (getRequestingUserData() != null && getRequestingUserData().companyId == resource.data.providerCompanyId);
 
         // More permissive rule for listing/querying inspections. The client-side queries
         // are responsible for filtering to the correct company's inspections.

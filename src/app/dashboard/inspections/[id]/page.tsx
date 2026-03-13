@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -201,7 +202,8 @@ export default function InspectionTaskPage() {
                 reportData: cleanedReportContent,
                 createdAt: serverTimestamp(),
                 createdBy: currentUserProfile.id,
-                companyId: currentUserProfile.companyId,
+                providerCompanyId: currentUserProfile.companyId,
+                clientCompanyId: job.clientCompanyId,
             };
             batch.set(newReportRef, reportData);
             
@@ -423,4 +425,3 @@ export default function InspectionTaskPage() {
         </FormProvider>
     );
 }
-

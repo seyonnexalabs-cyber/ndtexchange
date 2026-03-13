@@ -24,7 +24,8 @@ service cloud.firestore {
     }
     
     function isCompanyMember(companyId) {
-        return authed() && getRequestingUserData().companyId == companyId;
+        let userData = getRequestingUserData();
+        return authed() && userData != null && userData.companyId == companyId;
     }
     
     function isOwner(userId) {
@@ -34,9 +35,9 @@ service cloud.firestore {
     function isJobParticipant(jobId) {
         let job = get(/databases/$(database)/documents/jobs/$(jobId)).data;
         let userData = getRequestingUserData();
-        return userData.companyId == job.clientCompanyId || 
+        return userData != null && (userData.companyId == job.clientCompanyId || 
                 (job.providerCompanyId != null && userData.companyId == job.providerCompanyId) ||
-                (job.auditorCompanyId != null && userData.companyId == job.auditorCompanyId);
+                (job.auditorCompanyId != null && userData.companyId == job.auditorCompanyId));
     }
 
     // ---------------------------
@@ -165,9 +166,7 @@ service cloud.firestore {
     
     match /inspections/{inspectionId} {
         allow create: if isJobParticipant(request.resource.data.jobId) || isPlatformAdmin();
-        allow read, update: if (resource.data.clientCompanyId != null && isCompanyMember(resource.data.clientCompanyId)) ||
-                                (resource.data.providerCompanyId != null && isCompanyMember(resource.data.providerCompanyId)) ||
-                                isPlatformAdmin();
+        allow read, update: if isJobParticipant(resource.data.jobId) || isPlatformAdmin();
         allow delete: if isPlatformAdmin();
     }
 

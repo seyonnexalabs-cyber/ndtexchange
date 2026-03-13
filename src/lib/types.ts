@@ -112,6 +112,8 @@ export type Inspection = {
     assetId: string;
     technique: string;
     inspector: string;
+    inspectorId?: string;
+    equipmentId?: string;
     date: string;
     status: 'Scheduled' | 'Completed' | 'Requires Review';
     report?: InspectionReport;

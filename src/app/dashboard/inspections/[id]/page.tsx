@@ -16,7 +16,7 @@ import Link from 'next/link';
 import ReportGenerator from '../../my-jobs/components/report-generator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFirebase, useDoc, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, serverTimestamp, doc, writeBatch, arrayUnion, query, where, setDoc } from 'firebase/firestore';
+import { collection, serverTimestamp, doc, writeBatch, arrayUnion, query, where, setDoc, updateDoc } from 'firebase/firestore';
 import type { Job, Client, NDTServiceProvider, PlatformUser, Inspection, Equipment, NDTTechnique } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -91,12 +91,74 @@ export default function InspectionTaskPage() {
     const { data: providerTechnicians, isLoading: isLoadingTechnicians } = useCollection<PlatformUser>(
         useMemoFirebase(() => (firestore && job?.providerCompanyId ? query(collection(firestore, 'users'), where('companyId', '==', job.providerCompanyId), where('role', '==', 'Inspector')) : null), [firestore, job])
     );
+
+    const filteredEquipment = React.useMemo(() => {
+        if (!providerEquipment || !inspection?.technique) {
+            return [];
+        }
+        return providerEquipment.filter(equip => 
+            equip.techniques.includes(inspection.technique) && equip.status === 'Available'
+        );
+    }, [providerEquipment, inspection?.technique]);
     
     const form = useForm<z.infer<typeof reportSchema>>({
         resolver: zodResolver(reportSchema),
         mode: 'onChange',
         defaultValues: { summary: '', findings: [{ location: "", thickness: 0, notes: "" }] },
     });
+
+    const watchedInspectorId = form.watch('inspectorId');
+    const watchedEquipmentId = form.watch('inspectionEquipmentId');
+
+    React.useEffect(() => {
+        if (inspection) {
+            form.reset({
+                inspectorId: inspection.inspectorId,
+                inspectionEquipmentId: inspection.equipmentId,
+                summary: inspection.report?.reportData?.summary || '',
+                findings: inspection.report?.reportData?.findings || [{ location: "", thickness: 0, notes: "" }],
+                // You can add other fields from reportData here if needed
+            });
+        }
+    }, [inspection, form]);
+
+    React.useEffect(() => {
+        if (!watchedInspectorId || !firestore || !inspection || watchedInspectorId === inspection.inspectorId) {
+            return;
+        }
+
+        const inspector = providerTechnicians?.find(t => t.id === watchedInspectorId);
+        if (!inspector) return;
+
+        const inspectionRef = doc(firestore, 'inspections', inspectionId);
+        updateDoc(inspectionRef, {
+            inspectorId: watchedInspectorId,
+            inspector: inspector.name
+        }).then(() => {
+            toast.info("Inspector assigned.");
+        }).catch(err => {
+            console.error("Failed to update inspector:", err);
+            toast.error("Failed to assign inspector.");
+        });
+
+    }, [watchedInspectorId, firestore, inspectionId, inspection, providerTechnicians]);
+
+    React.useEffect(() => {
+        if (!watchedEquipmentId || !firestore || !inspection || watchedEquipmentId === inspection.equipmentId) {
+            return;
+        }
+
+        const inspectionRef = doc(firestore, 'inspections', inspectionId);
+        updateDoc(inspectionRef, {
+            equipmentId: watchedEquipmentId
+        }).then(() => {
+            toast.info("Equipment assigned.");
+        }).catch(err => {
+            console.error("Failed to update equipment:", err);
+            toast.error("Failed to assign equipment.");
+        });
+
+    }, [watchedEquipmentId, firestore, inspectionId, inspection]);
     
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -136,6 +198,8 @@ export default function InspectionTaskPage() {
             batch.update(inspectionRef, {
                 status: 'Completed',
                 inspector: inspector.name,
+                inspectorId: inspector.id,
+                equipmentId: values.inspectionEquipmentId,
                 report: {
                     id: newReportRef.id,
                     submittedOn: serverTimestamp(),
@@ -263,7 +327,7 @@ export default function InspectionTaskPage() {
                                 <FormField control={form.control} name="inspectorId" render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Performing Inspector*</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <Select onValueChange={field.onChange} value={field.value}>
                                             <FormControl><SelectTrigger><SelectValue placeholder="Select inspector..."/></SelectTrigger></FormControl>
                                             <SelectContent>
                                                 {(providerTechnicians || []).map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
@@ -275,10 +339,11 @@ export default function InspectionTaskPage() {
                                 <FormField control={form.control} name="inspectionEquipmentId" render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Inspection Equipment*</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <Select onValueChange={field.onChange} value={field.value}>
                                             <FormControl><SelectTrigger><SelectValue placeholder="Select equipment..."/></SelectTrigger></FormControl>
                                             <SelectContent>
-                                                {(providerEquipment || []).map(e => <SelectItem key={e.id} value={e.id}>{e.name} ({e.id})</SelectItem>)}
+                                                {(filteredEquipment || []).map(e => <SelectItem key={e.id} value={e.id}>{e.name} ({e.id})</SelectItem>)}
+                                                 {filteredEquipment.length === 0 && <p className="text-sm text-muted-foreground p-2">No available equipment for this technique.</p>}
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />
@@ -339,4 +404,3 @@ export default function InspectionTaskPage() {
         </FormProvider>
     );
 }
-

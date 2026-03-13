@@ -5,6 +5,7 @@ import AppSidebar from '@/app/components/layout/sidebar';
 import AppHeader from '@/app/components/layout/header';
 import { SearchProvider } from '@/app/components/layout/search-provider';
 import { QRScannerProvider } from '@/app/components/layout/qr-scanner-provider';
+import { ThemeProvider } from '@/app/components/layout/theme-provider';
 
 export default function DashboardLayout({
   children,
@@ -15,17 +16,19 @@ export default function DashboardLayout({
   return (
     <SearchProvider>
       <QRScannerProvider>
-        <div className="grid h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
-            <div className="hidden border-r bg-sidebar md:flex md:flex-col overflow-hidden">
-              <AppSidebar />
-            </div>
-            <div className="flex flex-col overflow-y-auto">
-              <AppHeader />
-              <main id="dashboard-main-content" className="flex-1 p-4 lg:p-6">
-                  {children}
-              </main>
-            </div>
-        </div>
+        <ThemeProvider>
+          <div className="grid h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+              <div className="hidden border-r bg-sidebar md:flex md:flex-col overflow-hidden">
+                <AppSidebar />
+              </div>
+              <div className="flex flex-col overflow-y-auto">
+                <AppHeader />
+                <main id="dashboard-main-content" className="flex-1 p-4 lg:p-6">
+                    {children}
+                </main>
+              </div>
+          </div>
+        </ThemeProvider>
       </QRScannerProvider>
     </SearchProvider>
   );

@@ -3,7 +3,6 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/sonner";
 import { Suspense } from 'react';
-import { ThemeProvider } from '@/app/components/layout/theme-provider';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import CookieConsent from '@/app/components/cookie-consent';
 import { ModeProvider } from '@/app/components/layout/mode-provider';
@@ -53,9 +52,7 @@ export default function RootLayout({
         <Suspense fallback={<div>Loading...</div>}>
             <FirebaseClientProvider>
               <ModeProvider>
-                <ThemeProvider>
-                  {children}
-                </ThemeProvider>
+                {children}
                 <Toaster richColors />
               </ModeProvider>
               <FirebaseErrorListener />

@@ -1,4 +1,5 @@
 
+
 'use client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -42,8 +43,8 @@ const ClientJobDate = ({ date }: { date: Date | null }) => {
     if (!formatted) {
         return (
             <>
-                <p className="text-sm font-semibold text-muted-foreground"><Skeleton className="h-4 w-8" /></p>
-                <p className="text-3xl font-bold"><Skeleton className="h-8 w-10" /></p>
+                <div className="text-sm font-semibold text-muted-foreground"><Skeleton className="h-4 w-8" /></div>
+                <div className="text-3xl font-bold"><Skeleton className="h-8 w-10" /></div>
             </>
         )
     }

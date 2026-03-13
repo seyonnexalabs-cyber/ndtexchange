@@ -1,5 +1,4 @@
 
-
 'use client';
 import * as React from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
@@ -21,7 +20,7 @@ import ReportGenerator from '../../my-jobs/components/report-generator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFirebase, useCollection, useMemoFirebase, useDoc, useUser } from '@/firebase';
-import { collection, serverTimestamp, doc, writeBatch, arrayUnion, query, where, setDoc } from 'firebase/firestore';
+import { collection, serverTimestamp, doc, writeBatch, arrayUnion, query, where, setDoc, collectionGroup, getDocs, limit, onSnapshot } from 'firebase/firestore';
 import type { Job, Client, NDTServiceProvider, PlatformUser, Inspection, Equipment, NDTTechnique } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
@@ -129,9 +128,40 @@ const ReportViewerPage = ({ reportId }: { reportId: string }) => {
         return `${base}?${params.toString()}`;
     };
 
-    const { data: report, isLoading: isLoadingReport } = useDoc<any>(
-        useMemoFirebase(() => (firestore ? doc(firestore, 'reports', reportId) : null), [firestore, reportId])
-    );
+    const [report, setReport] = React.useState<any | null>(null);
+    const [isLoadingReport, setIsLoadingReport] = React.useState(true);
+    const [reportError, setReportError] = React.useState<Error | null>(null);
+
+    React.useEffect(() => {
+        if (!firestore || !reportId) {
+            setIsLoadingReport(false);
+            return;
+        }
+
+        const reportsRef = collectionGroup(firestore, 'reports');
+        const q = query(reportsRef, where('id', '==', reportId), limit(1));
+
+        const unsubscribe = onSnapshot(q, 
+            (snapshot) => {
+                if (!snapshot.empty) {
+                    const reportDoc = snapshot.docs[0];
+                    setReport(reportDoc.data());
+                } else {
+                    setReport(null); // Report not found
+                }
+                setIsLoadingReport(false);
+                setReportError(null);
+            },
+            (error) => {
+                console.error("Error fetching report:", error);
+                setReportError(error);
+                setIsLoadingReport(false);
+            }
+        );
+
+        return () => unsubscribe();
+    }, [firestore, reportId]);
+
     const { data: inspection, isLoading: isLoadingInspection } = useDoc<Inspection>(
         useMemoFirebase(() => (firestore && report?.inspectionId ? doc(firestore, 'inspections', report.inspectionId) : null), [firestore, report])
     );
@@ -309,7 +339,7 @@ const ReportGeneratorPage = () => {
                 return;
             }
 
-            const newReportRef = doc(collection(firestore, 'reports'));
+            const newReportRef = doc(collection(firestore, 'jobs', job.id, 'reports'));
             const reportData = {
                 id: newReportRef.id,
                 jobId: job.id,

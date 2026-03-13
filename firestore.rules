@@ -140,6 +140,10 @@ service cloud.firestore {
           allow read, delete: if isJobParticipant(jobId) || isPlatformAdmin();
           allow create: if (isJobParticipant(jobId) && request.resource.data.senderId == request.auth.uid) || isPlatformAdmin();
       }
+
+      match /reports/{reportId} {
+        allow read, write: if isJobParticipant(jobId) || isPlatformAdmin();
+      }
     }
     
     match /bids/{bidId} {
@@ -160,13 +164,10 @@ service cloud.firestore {
     }
     
     match /inspections/{inspectionId} {
-        allow read, write: if isJobParticipant(resource.data.jobId) || isPlatformAdmin();
+        allow read: if isJobParticipant(get(/databases/$(database)/documents/inspections/$(inspectionId)).data.jobId) || isPlatformAdmin();
         allow create: if isJobParticipant(request.resource.data.jobId) || isPlatformAdmin();
-    }
-
-    match /reports/{reportId} {
-      // This rule allows a user to read/write a report if they are a participant in the job the report belongs to.
-      allow read, write: if isJobParticipant(resource.data.jobId) || isPlatformAdmin();
+        allow update: if isJobParticipant(get(/databases/$(database)/documents/inspections/$(inspectionId)).data.jobId) || isPlatformAdmin();
+        allow write: if isJobParticipant(resource.data.jobId) || isPlatformAdmin();
     }
 
     match /reviews/{reviewId} {

@@ -1,4 +1,5 @@
 
+
 'use client';
 import * as React from 'react';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
@@ -440,8 +441,8 @@ export default function JobDetailPage() {
                 <TabsContent value="bids" className="mt-6">
                     <BidsSection job={job} bids={sortedBids} allCompanies={allCompanies || []} onReviewBid={handleReviewBid} isClient={isClient} isAdmin={isAdmin} />
                 </TabsContent>
-                <TabsContent value="messages" className="mt-0 -m-6">
-                    <div className="h-[70vh] pt-6">
+                <TabsContent value="messages" className="mt-6">
+                    <div className="h-[60vh]">
                         <JobChatWindow job={job} />
                     </div>
                 </TabsContent>

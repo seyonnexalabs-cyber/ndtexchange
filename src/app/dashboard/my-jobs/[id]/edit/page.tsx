@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Trash } from 'lucide-react';
 import Link from 'next/link';
 import { useFirebase, useDoc, useUser, errorEmitter, FirestorePermissionError, useMemoFirebase, useCollection } from '@/firebase';
 import { doc, updateDoc, serverTimestamp, collection, query, where, writeBatch } from 'firebase/firestore';
@@ -20,11 +20,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { CustomDateInput } from '@/components/ui/custom-date-input';
 import { cn, safeParseDate } from '@/lib/utils';
 import { format } from 'date-fns';
-import { Separator } from '@/components/ui/separator';
+import { MultiSelect, type MultiSelectOption } from '@/components/ui/multi-select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { MultiSelect } from '@/components/ui/multi-select';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 
 const scopeItemSchema = z.object({
@@ -39,7 +37,6 @@ const editJobSchema = z.object({
   scheduledStartDate: z.date().optional(),
   scheduledEndDate: z.date().optional(),
   internalNotes: z.string().optional(),
-  assetIds: z.array(z.string()).min(1, "Please select at least one asset."),
   scope: z.array(scopeItemSchema).min(1, "You must define a scope for at least one asset."),
   newLocation: z.string().optional(),
 }).refine(data => {
@@ -61,6 +58,7 @@ export default function EditJobPage() {
     const searchParams = useSearchParams();
     const { firestore, user: authUser } = useFirebase();
     const [isSubmitting, setIsSubmitting] = React.useState(false);
+    const [isAddAssetOpen, setIsAddAssetOpen] = React.useState(false);
 
     const { data: job, isLoading: isLoadingJob } = useDoc<Job>(
         useMemoFirebase(() => (firestore && id ? doc(firestore, `jobs`, id) : null), [firestore, id])
@@ -84,7 +82,7 @@ export default function EditJobPage() {
         resolver: zodResolver(editJobSchema),
     });
 
-    const { fields: scopeFields, replace: replaceScope } = useFieldArray({
+    const { fields: scopeFields, append: appendScope, remove: removeScope } = useFieldArray({
         control: form.control,
         name: "scope",
     });
@@ -95,7 +93,7 @@ export default function EditJobPage() {
                 const assetInspections = inspections.filter(i => i.assetId === assetId);
                 const techniques = assetInspections.map(i => i.technique);
                 return { assetId, techniques: [...new Set(techniques)] };
-            }).filter(scopeItem => scopeItem.techniques.length > 0);
+            }).filter(scopeItem => scopeItem.techniques.length > 0 || job.assetIds?.includes(scopeItem.assetId));
 
             form.reset({
                 title: job.title,
@@ -104,26 +102,10 @@ export default function EditJobPage() {
                 scheduledStartDate: job.scheduledStartDate ? safeParseDate(job.scheduledStartDate) ?? undefined : undefined,
                 scheduledEndDate: job.scheduledEndDate ? safeParseDate(job.scheduledEndDate) ?? undefined : undefined,
                 internalNotes: job.internalNotes || '',
-                assetIds: job.assetIds || [],
-                scope: reconstructedScope,
+                scope: reconstructedScope.length > 0 ? reconstructedScope : job.assetIds?.map(id => ({assetId: id, techniques: []})) || [],
             });
         }
     }, [job, inspections, form]);
-
-    const selectedAssetIds = form.watch('assetIds');
-
-    React.useEffect(() => {
-        if (selectedAssetIds && clientAssets) {
-            const currentScope = form.getValues('scope') || [];
-            const newScope = selectedAssetIds.map((assetId: string) => {
-                const existingScopeItem = currentScope.find((s: any) => s.assetId === assetId);
-                return existingScopeItem || { assetId, techniques: [] };
-            });
-            if (JSON.stringify(newScope) !== JSON.stringify(currentScope)) {
-                replaceScope(newScope);
-            }
-        }
-    }, [selectedAssetIds, clientAssets, form, replaceScope]);
 
     const constructUrl = (base: string) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -136,9 +118,9 @@ export default function EditJobPage() {
         const batch = writeBatch(firestore);
 
         try {
-            // Update core job details
-            const jobRef = doc(firestore, 'jobs', id);
-            const { assetIds, scope, ...jobData } = values;
+            const { scope, ...jobData } = values;
+            const assetIds = scope.map(s => s.assetId);
+
             const dataToSave = {
                 ...jobData,
                 assetIds: assetIds,
@@ -147,9 +129,8 @@ export default function EditJobPage() {
                 modifiedAt: serverTimestamp(),
                 modifiedBy: authUser.uid,
             };
-            batch.update(jobRef, dataToSave);
+            batch.update(doc(firestore, 'jobs', id), dataToSave);
 
-            // Add new inspections if scope has changed
             for (const scopeItem of scope) {
                 const asset = clientAssets?.find(a => a.id === scopeItem.assetId);
                 if (!asset) continue;
@@ -194,13 +175,20 @@ export default function EditJobPage() {
         }
     };
     
-    const [assetNameFilter, setAssetNameFilter] = React.useState('');
-    const filteredAssets = React.useMemo(() => {
-        if (!clientAssets) return [];
-        return clientAssets.filter(asset => asset.name.toLowerCase().includes(assetNameFilter.toLowerCase()));
-    }, [clientAssets, assetNameFilter]);
-
-    const techniqueOptions = React.useMemo(() => (allTechniques || []).map(t => ({ value: t.acronym, label: `${t.title} (${t.acronym})` })), [allTechniques]);
+    const techniqueOptions: MultiSelectOption[] = React.useMemo(() => (allTechniques || []).map(t => ({ value: t.acronym, label: `${t.title} (${t.acronym})` })), [allTechniques]);
+    
+    const [selectedNewAssets, setSelectedNewAssets] = React.useState<string[]>([]);
+    
+    const handleAddAssetsToScope = () => {
+        selectedNewAssets.forEach(assetId => {
+            appendScope({ assetId, techniques: [] });
+        });
+        setSelectedNewAssets([]);
+        setIsAddAssetOpen(false);
+    };
+    
+    const currentAssetIdsInScope = form.watch('scope').map(s => s.assetId);
+    const availableAssets = clientAssets?.filter(asset => !currentAssetIdsInScope.includes(asset.id));
 
     const isLoading = isLoadingJob || isLoadingProfile || isLoadingAssets || isLoadingTechniques || isLoadingInspections;
 
@@ -236,60 +224,66 @@ export default function EditJobPage() {
                         </CardContent>
                     </Card>
 
-                    <Separator />
-                    
                     <Card>
                         <CardHeader>
                             <CardTitle>Scope of Work</CardTitle>
-                            <CardDescription>Add or remove assets and assign techniques for this job.</CardDescription>
+                            <CardDescription>Define which assets are part of this job and what techniques are required for each.</CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-6">
-                            <FormField control={form.control} name="assetIds" render={() => (
-                                <FormItem>
-                                    <FormLabel>Asset Selection</FormLabel>
-                                    <div className="p-2 border rounded-md">
-                                        <div className="p-2"><Input placeholder="Filter assets by name..." value={assetNameFilter} onChange={(e) => setAssetNameFilter(e.target.value)} /></div>
-                                        <ScrollArea className="h-40 w-full p-2">
-                                            {filteredAssets.map((asset) => (
-                                                <FormField key={asset.id} control={form.control} name="assetIds" render={({ field }) => (
-                                                    <FormItem className="flex flex-row items-center space-x-3 space-y-0 mb-3 pl-2">
-                                                        <FormControl><Checkbox checked={field.value?.includes(asset.id)} onCheckedChange={(checked) => (checked ? field.onChange([...(field.value || []), asset.id]) : field.onChange((field.value || []).filter((value) => value !== asset.id)))} /></FormControl>
-                                                        <FormLabel className="font-normal text-sm">{asset.name} <span className="text-xs text-muted-foreground">({asset.location})</span></FormLabel>
+                        <CardContent>
+                            <div className="space-y-4">
+                                {scopeFields.map((field, index) => {
+                                    const asset = clientAssets?.find(a => a.id === field.assetId);
+                                    if (!asset) return null;
+                                    return (
+                                        <div key={field.id} className="rounded-md border p-4 space-y-4 bg-muted/30">
+                                            <div className="flex justify-between items-start">
+                                                <div className="font-semibold">{asset.name} <span className="text-sm font-normal text-muted-foreground">({asset.location})</span></div>
+                                                <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeScope(index)}><Trash className="h-4 w-4 text-destructive" /></Button>
+                                            </div>
+                                            <FormField
+                                                control={form.control}
+                                                name={`scope.${index}.techniques`}
+                                                render={({ field: multiSelectField }) => (
+                                                    <FormItem>
+                                                        <FormLabel className="sr-only">Techniques for {asset.name}</FormLabel>
+                                                        <MultiSelect options={techniqueOptions} selected={multiSelectField.value} onChange={multiSelectField.onChange} placeholder="Assign techniques..." />
+                                                        <FormMessage />
                                                     </FormItem>
-                                                )} />
-                                            ))}
-                                        </ScrollArea>
-                                    </div>
-                                    <FormMessage />
-                                </FormItem>
-                            )}/>
-                            {scopeFields.length > 0 && (
-                                <FormItem>
-                                    <FormLabel>Technique Assignment</FormLabel>
-                                    <div className="space-y-4">
-                                        {scopeFields.map((field, index) => {
-                                            const asset = clientAssets?.find(a => a.id === (field as any).assetId);
-                                            return (
-                                                <div key={field.id} className="rounded-md border p-4 space-y-4 bg-muted/50">
-                                                    <h4 className="font-semibold">{asset?.name} <span className="text-sm font-normal text-muted-foreground">({asset?.location})</span></h4>
-                                                    <FormField
-                                                        control={form.control}
-                                                        name={`scope.${index}.techniques`}
-                                                        render={({ field: multiSelectField }) => (
-                                                            <FormItem>
-                                                                <FormLabel className="sr-only">Techniques for {asset?.name}</FormLabel>
-                                                                <MultiSelect options={techniqueOptions} selected={multiSelectField.value} onChange={multiSelectField.onChange} placeholder="Select techniques for this asset..." />
-                                                                <FormMessage />
-                                                            </FormItem>
-                                                        )}
-                                                    />
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
+                                                )}
+                                            />
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                             <Dialog open={isAddAssetOpen} onOpenChange={setIsAddAssetOpen}>
+                                <DialogTrigger asChild>
+                                    <Button type="button" variant="outline" className="mt-4">Add Asset to Scope</Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-lg">
+                                    <DialogHeader>
+                                        <DialogTitle>Add Assets to Job Scope</DialogTitle>
+                                        <DialogDescription>Select one or more assets to add to this job.</DialogDescription>
+                                    </DialogHeader>
+                                    <ScrollArea className="h-72 border rounded-md p-4">
+                                        {(availableAssets || []).map(asset => (
+                                             <div key={asset.id} className="flex flex-row items-center space-x-3 space-y-0 mb-3">
+                                                <Checkbox
+                                                    id={`asset-select-${asset.id}`}
+                                                    checked={selectedNewAssets.includes(asset.id)}
+                                                    onCheckedChange={(checked) => {
+                                                        setSelectedNewAssets(prev => checked ? [...prev, asset.id] : prev.filter(id => id !== asset.id));
+                                                    }}
+                                                />
+                                                <label htmlFor={`asset-select-${asset.id}`} className="font-normal text-sm">{asset.name} <span className="text-xs text-muted-foreground">({asset.location})</span></label>
+                                            </div>
+                                        ))}
+                                    </ScrollArea>
+                                    <DialogFooter>
+                                        <Button type="button" variant="ghost" onClick={() => { setIsAddAssetOpen(false); setSelectedNewAssets([]); }}>Cancel</Button>
+                                        <Button type="button" onClick={handleAddAssetsToScope} disabled={selectedNewAssets.length === 0}>Add Selected Assets</Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                             </Dialog>
                         </CardContent>
                     </Card>
 

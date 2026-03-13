@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -13,17 +12,24 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import ReportGenerator from '../../my-jobs/components/report-generator';
 import { FormProvider, useForm } from 'react-hook-form';
-
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 
 export default function ReportTemplatesPage() {
     const { firestore } = useFirebase();
     const [viewingTemplate, setViewingTemplate] = React.useState<NDTTechnique | null>(null);
+    const searchParams = useSearchParams();
 
     const techniquesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]);
     const { data: ndtTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(techniquesQuery);
     
     // A dummy form provider is needed because ReportGenerator and its children expect to be within one.
     const form = useForm({ defaultValues: { summary: '' } }); 
+
+    const constructUrl = (base: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        return `${base}?${params.toString()}`;
+    };
 
     return (
         <div className="space-y-6">
@@ -35,9 +41,11 @@ export default function ReportTemplatesPage() {
                     </h1>
                     <p className="text-muted-foreground mt-1">Manage your company's standard report templates.</p>
                 </div>
-                <Button>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Create New Template
+                <Button asChild>
+                    <Link href={constructUrl('/dashboard/reports/templates/new')}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Create New Template
+                    </Link>
                 </Button>
             </div>
 
@@ -77,7 +85,9 @@ export default function ReportTemplatesPage() {
                 <CardContent>
                    <div className="text-center p-10">
                         <p className="text-muted-foreground">You haven't created any custom templates yet.</p>
-                        <Button className="mt-4">Create Your First Template</Button>
+                        <Button asChild className="mt-4">
+                           <Link href={constructUrl('/dashboard/reports/templates/new')}>Create Your First Template</Link>
+                        </Button>
                    </div>
                 </CardContent>
             </Card>

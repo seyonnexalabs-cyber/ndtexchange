@@ -141,6 +141,7 @@ service cloud.firestore {
           allow create: if (isJobParticipant(jobId) && request.resource.data.senderId == request.auth.uid) || isPlatformAdmin();
       }
 
+      // Nested reports subcollection
       match /reports/{reportId} {
         allow read, write: if isJobParticipant(jobId) || isPlatformAdmin();
       }
@@ -151,10 +152,9 @@ service cloud.firestore {
         allow create: if isCompanyMember(request.resource.data.providerCompanyId) || isPlatformAdmin();
 
         // Client on the job can read bids.
-        // Provider can only read their own bid.
-        allow read: if isOwner(resource.data.inspectorId) || 
-                    isCompanyMember(resource.data.clientCompanyId) || 
-                    isPlatformAdmin();
+        // Provider who placed bid can read their own.
+        // Once awarded, all job participants can read the bids for that job.
+        allow read: if isOwner(resource.data.inspectorId) || isJobParticipant(resource.data.jobId) || isPlatformAdmin();
 
         // Provider can update/withdraw their own bid before awarded.
         // Client can update status to accept/reject.
@@ -164,11 +164,7 @@ service cloud.firestore {
     }
     
     match /inspections/{inspectionId} {
-        allow read, update: if isPlatformAdmin() || 
-                        (request.auth.uid != null && 
-                            (resource.data.clientCompanyId == getRequestingUserData().companyId ||
-                                resource.data.providerCompanyId == getRequestingUserData().companyId));
-        
+        allow read, update: if isJobParticipant(resource.data.jobId) || isPlatformAdmin();
         allow create: if isJobParticipant(request.resource.data.jobId) || isPlatformAdmin();
         allow delete: if isPlatformAdmin();
     }

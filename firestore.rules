@@ -146,7 +146,7 @@ service cloud.firestore {
     
     match /bids/{bidId} {
         allow create: if isCompanyMember(request.resource.data.providerCompanyId) || isPlatformAdmin();
-        allow read: if isOwner(resource.data.inspectorId) || isJobParticipant(resource.data.jobId) || isPlatformAdmin();
+        allow read: if isJobParticipant(resource.data.jobId) || isPlatformAdmin();
         allow update: if isOwner(resource.data.inspectorId) || 
                       isCompanyMember(request.resource.data.clientCompanyId) ||
                       isPlatformAdmin();
@@ -156,7 +156,9 @@ service cloud.firestore {
         allow create: if isCompanyMember(request.resource.data.clientCompanyId) || isPlatformAdmin();
 
         // Secure rule for fetching a single inspection document.
-        allow get: if isJobParticipant(resource.data.jobId) || isPlatformAdmin();
+        allow get: if isPlatformAdmin() || 
+                     (getRequestingUserData().companyId == resource.data.clientCompanyId) ||
+                     (getRequestingUserData().companyId == resource.data.providerCompanyId);
 
         // More permissive rule for listing/querying inspections. The client-side queries
         // are responsible for filtering to the correct company's inspections.

@@ -32,13 +32,14 @@ const DefaultTemplate = () => (
     </p>
 );
 
-const ReportGenerator = ({ technique, devOverrideTechnique }: { technique: string, devOverrideTechnique?: string }) => {
+const ReportGenerator = ({ technique, devOverrideTechnique }: { technique?: string, devOverrideTechnique?: string }) => {
     const { control } = useFormContext();
     
-    const activeTechnique = process.env.NODE_ENV === 'development' && devOverrideTechnique ? devOverrideTechnique : technique;
+    // Allow overriding the technique for preview purposes
+    const activeTechnique = devOverrideTechnique || technique;
 
     // Select the correct component from the pre-loaded map.
-    const TemplateComponent = templates[activeTechnique as keyof typeof templates] || DefaultTemplate;
+    const TemplateComponent = activeTechnique ? templates[activeTechnique as keyof typeof templates] || DefaultTemplate : DefaultTemplate;
     
     return (
         <div className="space-y-6">

@@ -1,6 +1,7 @@
 
 'use client';
 
+import * as React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, PlusCircle } from "lucide-react";
@@ -9,11 +10,20 @@ import { collection } from 'firebase/firestore';
 import type { NDTTechnique } from '@/lib/types';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import ReportGenerator from '../../my-jobs/components/report-generator';
+import { FormProvider, useForm } from 'react-hook-form';
+
 
 export default function ReportTemplatesPage() {
     const { firestore } = useFirebase();
+    const [viewingTemplate, setViewingTemplate] = React.useState<NDTTechnique | null>(null);
+
     const techniquesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]);
     const { data: ndtTechniques, isLoading: isLoadingTechniques } = useCollection<NDTTechnique>(techniquesQuery);
+    
+    // A dummy form provider is needed because ReportGenerator and its children expect to be within one.
+    const form = useForm({ defaultValues: { summary: '' } }); 
 
     return (
         <div className="space-y-6">
@@ -49,7 +59,7 @@ export default function ReportTemplatesPage() {
                                         <h3 className="font-semibold">{tech.title} Report</h3>
                                         <Badge variant="outline" className="mt-1">{tech.acronym}</Badge>
                                     </div>
-                                    <Button variant="outline" size="sm">View</Button>
+                                    <Button variant="outline" size="sm" onClick={() => setViewingTemplate(tech)}>View</Button>
                                 </Card>
                             ))
                         )}
@@ -71,6 +81,24 @@ export default function ReportTemplatesPage() {
                    </div>
                 </CardContent>
             </Card>
+
+            <Dialog open={!!viewingTemplate} onOpenChange={(open) => !open && setViewingTemplate(null)}>
+                <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
+                    <DialogHeader>
+                        <DialogTitle>Template Preview: {viewingTemplate?.title} ({viewingTemplate?.acronym})</DialogTitle>
+                        <DialogDescription>
+                           This is a read-only preview of the default data entry form for this technique.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex-grow overflow-y-auto pr-6">
+                        <FormProvider {...form}>
+                            <fieldset disabled>
+                                <ReportGenerator devOverrideTechnique={viewingTemplate?.acronym} />
+                            </fieldset>
+                        </FormProvider>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

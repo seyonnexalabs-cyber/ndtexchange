@@ -4,7 +4,7 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Briefcase, CheckCircle, MapPin, Award, PlusCircle, Filter, X, Gavel, Building, DollarSign, FileText, History, HardHat } from "lucide-react";
+import { Briefcase, CheckCircle, MapPin, Award, PlusCircle, Filter, X, Gavel, Building, DollarSign, FileText, History, HardHat, ClipboardList } from "lucide-react";
 import Link from 'next/link';
 import { useSearchParams } from "next/navigation";
 import { useState, useMemo, useEffect } from "react";
@@ -16,9 +16,11 @@ import { Label } from "@/components/ui/label";
 import { useFirebase, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
 import { collection, query, where, doc } from 'firebase/firestore';
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Job, PlatformUser, NDTServiceProvider } from '@/lib/types';
+import type { Job, PlatformUser, NDTServiceProvider, Inspection } from '@/lib/types';
 import { useSearch } from "@/app/components/layout/search-provider";
 import React from "react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type JobView = 'active' | 'completed' | 'upcoming' | 'drafts';
 
@@ -43,7 +45,7 @@ const ClientJobDate = ({ date }: { date: Date | null }) => {
     if (!formatted) {
         return (
             <>
-                <div className="text-sm font-semibold text-muted-foreground"><Skeleton className="h-4 w-8" /></div>
+                <div><Skeleton className="h-4 w-8" /></div>
                 <div className="text-3xl font-bold"><Skeleton className="h-8 w-10" /></div>
             </>
         )
@@ -56,6 +58,108 @@ const ClientJobDate = ({ date }: { date: Date | null }) => {
         </>
     );
 };
+
+const ClientFormattedDate = ({ date, formatString }: { date: Date | null, formatString: string }) => {
+    const [formatted, setFormatted] = React.useState<string | null>(null);
+    React.useEffect(() => {
+        if (date) {
+            setFormatted(format(date, formatString));
+        }
+    }, [date, formatString]);
+
+    if (!formatted) return null;
+    return <>{formatted}</>;
+};
+
+const PendingInspectionsList = ({ inspections, constructUrl, userJobs, isLoading }: { inspections: Inspection[], constructUrl: (path: string) => string, userJobs: Job[], isLoading: boolean }) => {
+    const isMobile = useIsMobile();
+    
+    if (isLoading) {
+        return <Skeleton className="h-64 w-full" />
+    }
+
+    if (inspections.length === 0) {
+        return (
+            <div className="text-center p-10 border rounded-lg">
+                <ClipboardList className="mx-auto h-12 w-12 text-muted-foreground" />
+                <h2 className="mt-4 text-xl font-headline">No Pending Inspections</h2>
+                <p className="mt-2 text-muted-foreground">Your work queue is empty.</p>
+            </div>
+        );
+    }
+
+    if (isMobile) {
+        return (
+            <div className="space-y-4">
+                {inspections.map(inspection => {
+                    const inspectionDate = safeParseDate(inspection.date);
+                    return (
+                        <Card key={inspection.id}>
+                            <CardHeader>
+                                <CardTitle className="text-base">{inspection.assetName}</CardTitle>
+                                <CardDescription>For Job: {inspection.jobId.substring(0,7)}...</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-2 text-sm">
+                                <p><strong>Technique:</strong> <Badge variant="secondary">{inspection.technique}</Badge></p>
+                                <p><strong>Scheduled Date:</strong> <ClientFormattedDate date={inspectionDate} formatString={GLOBAL_DATE_FORMAT} /></p>
+                            </CardContent>
+                            <CardFooter>
+                                <Button asChild className="w-full">
+                                    <Link href={constructUrl(`/dashboard/inspections/${inspection.id}`)}>
+                                        <FileText className="mr-2 h-4 w-4" /> Start Report
+                                    </Link>
+                                </Button>
+                            </CardFooter>
+                        </Card>
+                    )
+                })}
+            </div>
+        );
+    }
+    
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Inspection Work Queue</CardTitle>
+                <CardDescription>A list of all inspections that are scheduled and need a report to be filed.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Asset</TableHead>
+                            <TableHead>Job Title</TableHead>
+                            <TableHead>Technique</TableHead>
+                            <TableHead>Scheduled Date</TableHead>
+                            <TableHead className="text-right">Action</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {inspections.map(inspection => {
+                            const inspectionDate = safeParseDate(inspection.date);
+                            const job = userJobs?.find(j => j.id === inspection.jobId);
+                            return (
+                            <TableRow key={inspection.id}>
+                                <TableCell className="font-medium">{inspection.assetName}</TableCell>
+                                <TableCell>{job?.title || inspection.jobId}</TableCell>
+                                <TableCell><Badge variant="secondary" shape="rounded">{inspection.technique}</Badge></TableCell>
+                                <TableCell><ClientFormattedDate date={inspectionDate} formatString={GLOBAL_DATE_FORMAT} /></TableCell>
+                                <TableCell className="text-right">
+                                    <Button asChild>
+                                        <Link href={constructUrl(`/dashboard/inspections/${inspection.id}`)}>
+                                            <FileText className="mr-2 h-4 w-4" /> Start Report
+                                        </Link>
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
+                        )})}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+    );
+};
+
 
 export default function MyJobsPage() {
     const searchParams = useSearchParams();
@@ -86,6 +190,13 @@ export default function MyJobsPage() {
 
     const { data: jobsFromDb, isLoading: isLoadingJobs } = useCollection<Job>(jobsQuery);
     const { data: allCompanies, isLoading: isLoadingCompanies } = useCollection<NDTServiceProvider>(useMemoFirebase(() => (firestore) ? collection(firestore, 'companies') : null, [firestore]));
+    
+    const inspectionsQuery = useMemoFirebase(() => {
+        if (!firestore || !userProfile?.companyId || role !== 'inspector') return null;
+        return query(collection(firestore, 'inspections'), where('status', '==', 'Scheduled'));
+    }, [firestore, userProfile, role]);
+    
+    const { data: allPendingInspections, isLoading: isLoadingInspections } = useCollection<Inspection>(inspectionsQuery);
 
     const jobsByCategory = useMemo(() => {
         if (!jobsFromDb) return { active: [], completed: [], upcoming: [], drafts: [] };
@@ -98,7 +209,13 @@ export default function MyJobsPage() {
             upcoming: relevantJobs.filter(job => role === 'inspector' ? ['Assigned', 'Scheduled'].includes(job.status) : ['Posted', 'Assigned', 'Scheduled'].includes(job.status)),
             drafts: relevantJobs.filter(job => job.status === 'Draft'),
         };
-    }, [jobsFromDb, role, userProfile]);
+    }, [jobsFromDb, role]);
+
+    const pendingInspections = useMemo(() => {
+        if (!allPendingInspections || !jobsFromDb) return [];
+        const userJobIds = new Set(jobsFromDb.map(j => j.id));
+        return allPendingInspections.filter(inspection => userJobIds.has(inspection.jobId));
+    }, [allPendingInspections, jobsFromDb]);
     
     const { displayedJobs, title, Icon } = useMemo(() => {
         let jobsToShow: Job[] = [];
@@ -117,9 +234,15 @@ export default function MyJobsPage() {
                 PageIcon = History;
                 break;
             case 'upcoming':
-                jobsToShow = jobsByCategory.upcoming;
-                pageTitle = role === 'inspector' ? 'Upcoming Jobs' : 'Pending & Upcoming';
-                PageIcon = Award;
+                if (role === 'inspector') {
+                    jobsToShow = [];
+                    pageTitle = 'Pending Inspections';
+                    PageIcon = ClipboardList;
+                } else {
+                    jobsToShow = jobsByCategory.upcoming;
+                    pageTitle = 'Pending & Upcoming';
+                    PageIcon = Award;
+                }
                 break;
             case 'drafts':
                 jobsToShow = jobsByCategory.drafts;
@@ -216,7 +339,7 @@ export default function MyJobsPage() {
         return allCompanies.filter(p => p.type === 'Provider' && providerIds.has(p.id));
     }, [role, jobsFromDb, allCompanies]);
 
-    if (isLoadingJobs || isLoadingProfile || isLoadingCompanies) {
+    if (isLoadingJobs || isLoadingProfile || isLoadingCompanies || isLoadingInspections) {
         return (
             <div>
                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
@@ -251,7 +374,7 @@ export default function MyJobsPage() {
                     {role === 'client' && <Button variant={view === 'drafts' ? 'default' : 'outline'} onClick={() => setView('drafts')}>Drafts</Button>}
                     <Button variant={view === 'active' ? 'default' : 'outline'} onClick={() => setView('active')}>Active</Button>
                     <Button variant={view === 'upcoming' ? 'default' : 'outline'} onClick={() => setView('upcoming')}>
-                        {role === 'inspector' ? 'Upcoming' : 'Pending'}
+                        {role === 'inspector' ? 'Pending Inspections' : 'Pending'}
                     </Button>
                     <Button variant={view === 'completed' ? 'default' : 'outline'} onClick={() => setView('completed')}>Completed</Button>
                 </div>
@@ -349,7 +472,9 @@ export default function MyJobsPage() {
                 </div>
             )}
              
-            {displayedJobs.length > 0 ? (
+            {view === 'upcoming' && role === 'inspector' ? (
+                <PendingInspectionsList inspections={pendingInspections} constructUrl={constructUrl} userJobs={jobsFromDb || []} isLoading={isLoadingInspections} />
+            ) : displayedJobs.length > 0 ? (
                  <div className="space-y-8">
                     {Object.entries(jobsByMonth).map(([month, jobs]) => (
                         <div key={month}>
@@ -410,10 +535,4 @@ export default function MyJobsPage() {
         </div>
     );
 }
-    
-    
 
-
-    
-
-    

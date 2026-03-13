@@ -25,11 +25,17 @@ import { createBlockquotePlugin } from '@udecode/plate-block-quote';
 import { createCodeBlockPlugin } from '@udecode/plate-code-block';
 import { createHeadingPlugin } from '@udecode/plate-heading';
 import { createBoldPlugin, createItalicPlugin, createUnderlinePlugin } from '@udecode/plate-basic-marks';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 export default function NewReportTemplatePage() {
     const searchParams = useSearchParams();
     const { firestore } = useFirebase();
+    const [isClient, setIsClient] = React.useState(false);
+
+    React.useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     const techniquesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'techniques') : null, [firestore]);
     const { data: ndtTechniques } = useCollection<NDTTechnique>(techniquesQuery);
@@ -110,13 +116,17 @@ export default function NewReportTemplatePage() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                           <PlateProvider plugins={plugins}>
-                              <div className="rounded-md border min-h-[400px] p-4 bg-background">
-                                <Plate>
-                                  <PlateContent placeholder="Start building your template here..." />
-                                </Plate>
-                              </div>
-                           </PlateProvider>
+                           {isClient ? (
+                                <PlateProvider plugins={plugins}>
+                                  <div className="rounded-md border min-h-[400px] p-4 bg-background">
+                                    <Plate>
+                                      <PlateContent placeholder="Start building your template here..." />
+                                    </Plate>
+                                  </div>
+                               </PlateProvider>
+                           ) : (
+                                <Skeleton className="h-[400px] w-full" />
+                           )}
                         </CardContent>
                     </Card>
                 </div>

@@ -97,7 +97,7 @@ const ReportList = ({ inspections, role, constructUrl }: { inspections: any[], r
             <div className="text-center p-10 border rounded-lg">
                 <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
                 <h2 className="mt-4 text-xl font-headline">No Reports Found</h2>
-                <p className="mt-2 text-muted-foreground">There are no reports that match the current criteria.</p>
+                <p className="mt-2 text-muted-foreground">There are no generated reports that match the current criteria.</p>
             </div>
         );
     }
@@ -245,12 +245,12 @@ export default function ReportsPage() {
         const relevantJobIds = new Set(jobs.map(j => j.id));
 
         return allInspectionsData
-            .filter(inspection => relevantJobIds.has(inspection.jobId))
+            .filter(inspection => relevantJobIds.has(inspection.jobId) && !!inspection.report)
             .map(inspection => ({
                 ...inspection,
                 job: jobs.find(j => j.id === inspection.jobId)
             }))
-            .filter(inspection => inspection.job && inspection.report);
+            .filter(inspection => inspection.job);
     }, [allInspectionsData, jobs]);
 
     const augmentedAndFilteredInspections = useMemo(() => {
@@ -283,7 +283,8 @@ export default function ReportsPage() {
     const roleConfig = useMemo(() => {
         switch(role) {
             case 'auditor': return {
-                title: "Audit Queue",
+                title: "Audit Queue & History",
+                description: "Review reports that require your approval and view your audit history.",
                 tabs: [
                     { value: "queue", label: `Audit Queue (${reportsForAuditorQueue.length})`, data: reportsForAuditorQueue },
                     { value: "history", label: `History (${auditorHistory.length})`, data: auditorHistory },
@@ -292,6 +293,7 @@ export default function ReportsPage() {
             };
             case 'client': return {
                 title: "Inspections & Reports",
+                description: "Access and review all completed inspection reports for your jobs.",
                 tabs: [
                     { value: "all", label: `All Reports (${augmentedAndFilteredInspections.length})`, data: augmentedAndFilteredInspections },
                     { value: "review", label: `Awaiting My Review (${reportsForClientReview.length})`, data: reportsForClientReview },
@@ -300,7 +302,8 @@ export default function ReportsPage() {
                 defaultTab: tabParam || "all",
             };
             case 'inspector': return {
-                title: "My Reports",
+                title: "My Submitted Reports",
+                description: "View all the reports you have submitted and check for any revision requests.",
                 tabs: [
                     { value: "all", label: `All Reports (${augmentedAndFilteredInspections.length})`, data: augmentedAndFilteredInspections },
                     { value: "revisions", label: `Revisions Requested (${inspectorRevisions.length})`, data: inspectorRevisions },
@@ -308,14 +311,15 @@ export default function ReportsPage() {
                 defaultTab: tabParam || "all",
             };
             case 'admin': return {
-                title: "Platform Reports",
+                title: "Platform Reports Archive",
+                description: "Access all inspection reports generated across the platform.",
                 tabs: [
                     { value: "all", label: `All Reports (${augmentedAndFilteredInspections.length})`, data: augmentedAndFilteredInspections },
                     { value: 'analytics', label: 'Generate Reports', data: [] }
                 ],
                 defaultTab: tabParam || "all",
             };
-            default: return { title: "Reports", tabs: [], defaultTab: 'all' };
+            default: return { title: "Reports", description: "View generated reports.", tabs: [], defaultTab: 'all' };
         }
     }, [role, tabParam, augmentedAndFilteredInspections, reportsForAuditorQueue, auditorHistory, reportsForClientReview, inspectorRevisions]);
     
@@ -327,6 +331,7 @@ export default function ReportsPage() {
                         <FileText className="text-primary" />
                         {roleConfig.title}
                     </h1>
+                     <p className="text-muted-foreground mt-1">{roleConfig.description}</p>
                 </div>
             </div>
             <Tabs defaultValue={roleConfig.defaultTab}>
